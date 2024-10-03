@@ -52,7 +52,7 @@ img {
  }
 
 .background-customimage {
-  background-image: url('../bg1.png');
+  background-image: url('bg1.png');
   background-position: center;
   background-repeat: repeat;
   background-attachment: fixed;
