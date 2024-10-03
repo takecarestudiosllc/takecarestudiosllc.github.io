@@ -65,7 +65,11 @@ img {
 .background-sky { background: #0d47a1; }
 .background-white { background: #FFFFFF; }
 .background-black { background: #000000; }
-.background-blacktop { background: #212121; }
+.background-blacktop { 
+  background: #212121;
+  position: fixed;
+  width:100%;
+  top: 0px; }
 .background-blackbottom { 
   background: #212121;
   position: fixed;
