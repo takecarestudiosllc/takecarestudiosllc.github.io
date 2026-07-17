@@ -1,0 +1,334 @@
+/* ==========================================================================
+   Take Care Studios — global styles
+   The WebGL canvas sits behind everything (.webgl-canvas); DOM content floats
+   above it, mostly inside translucent "glass" panels for readability.
+   Theme accents come from <body data-theme="...">.
+   ========================================================================== */
+
+:root {
+  --bg: #08080b;
+  --text: #f4f3f0;
+  --text-dim: rgba(244, 243, 240, 0.66);
+  --line: rgba(255, 255, 255, 0.12);
+  --glass: rgba(10, 10, 14, 0.5);
+  --accent: #8b7dff;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --radius: 22px;
+}
+body[data-theme='sixseven'] { --accent: #ffa02a; --glass: rgba(20, 6, 2, 0.55); }
+body[data-theme='touchgrass'] {
+  --accent: #eaffbb;
+  --glass: rgba(8, 26, 4, 0.5);
+  /* white text sits on a bright meadow here — boost contrast */
+  --text-dim: rgba(255, 255, 255, 0.92);
+}
+/* drop-shadow (not text-shadow) so the word-split masks don't clip the halo */
+body[data-theme='touchgrass'] .hero-title { filter: drop-shadow(0 2px 16px rgba(15, 60, 5, 0.55)); }
+body[data-theme='touchgrass'] .hero-eyebrow,
+body[data-theme='touchgrass'] .hero-sub,
+body[data-theme='touchgrass'] .scroll-cue { text-shadow: 0 1px 14px rgba(15, 60, 5, 0.6); }
+
+/* --- reset ---------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+img, svg, video, iframe { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.65;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CSS-only fallback backgrounds (visible before the canvas fades in, and on
+   browsers without WebGL) — rough matches of each page's shader palette. */
+body[data-page='home'] { background: radial-gradient(120% 90% at 50% 10%, #1d1840 0%, #06060a 70%); }
+body[data-page='sixseven'] { background: radial-gradient(120% 100% at 50% 20%, #7a1b04 0%, #330502 70%); }
+body[data-page='touchgrass'] { background: linear-gradient(180deg, #b9ec55 0%, #46b31f 80%); }
+
+::selection { background: var(--accent); color: #0a0a0d; }
+a { color: var(--text); text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Lenis smooth-scroll housekeeping (from the Lenis docs) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+/* --- WebGL canvas ---------------------------------------------------------- */
+.webgl-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.webgl-canvas.is-ready { opacity: 1; }
+
+/* --- header ----------------------------------------------------------------- */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem clamp(1.25rem, 4vw, 3rem);
+  transition: background-color 0.4s ease, backdrop-filter 0.4s ease, box-shadow 0.4s ease;
+}
+.site-header.is-scrolled {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 var(--line);
+}
+.brand { display: inline-flex; align-items: center; gap: 0.75rem; font-weight: 700; letter-spacing: 0.01em; }
+.brand img { height: 40px; width: auto; }
+/* The studio wordmark is black-on-transparent — invert it for dark pages. */
+.brand img.brand-script { filter: invert(1); }
+.site-nav { display: flex; align-items: center; gap: clamp(0.9rem, 2.5vw, 1.8rem); }
+.site-nav a {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  transition: color 0.25s ease;
+}
+.site-nav a:hover { color: var(--text); }
+
+/* --- hero -------------------------------------------------------------------- */
+.hero {
+  min-height: 100svh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: 7rem 1.5rem 5rem;
+  position: relative;
+}
+.hero-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.2rem;
+}
+.hero-title {
+  font-size: clamp(2.7rem, 9vw, 6.4rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  max-width: 12ch;
+  text-wrap: balance;
+}
+.hero-sub {
+  margin-top: 1.4rem;
+  max-width: 44ch;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--text-dim);
+  text-wrap: balance;
+}
+.hero-brandmark { height: clamp(56px, 9vw, 96px); width: auto; margin-bottom: 1.6rem; filter: invert(1); }
+.hero-art {
+  margin-top: 3rem;
+  width: min(680px, 88vw);
+  border-radius: var(--radius);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+/* word-split machinery (spans injected by domAnimations.ts) */
+.split-mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.split-word { display: inline-block; will-change: transform; }
+
+.scroll-cue {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.scroll-cue::after {
+  content: '';
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(var(--accent), transparent);
+  animation: cue-drop 2s ease-in-out infinite;
+}
+@keyframes cue-drop {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* --- sections ------------------------------------------------------------------ */
+.section {
+  padding: 14vh clamp(1.25rem, 4vw, 3rem);
+  max-width: 1100px;
+  margin-inline: auto;
+}
+.section-title {
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 2.2rem;
+}
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.section-inner { padding: clamp(1.8rem, 4vw, 3.2rem); }
+.section-inner h2 { font-size: clamp(1.4rem, 3.4vw, 2rem); font-weight: 800; margin-bottom: 1.6rem; }
+
+/* --- game cards (home) ------------------------------------------------------ */
+.game-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); }
+.game-card {
+  display: block;
+  padding: 1.4rem;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.45s ease;
+}
+.game-card:hover { transform: translateY(-6px); border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.game-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radius) - 8px);
+  overflow: hidden;
+  margin-bottom: 1.3rem;
+}
+.game-card__media img {
+  position: absolute;
+  inset: -8% 0;      /* extra bleed so the scroll parallax never shows edges */
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+  transition: scale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.game-card:hover .game-card__media img { scale: 1.04; }
+.game-card h3 { font-size: 1.35rem; font-weight: 800; margin-bottom: 0.4rem; }
+.game-card p { color: var(--text-dim); font-size: 0.98rem; }
+.game-card .cta { display: inline-block; margin-top: 1rem; font-weight: 700; font-size: 0.92rem; color: var(--accent); }
+
+/* --- video facade -------------------------------------------------------------- */
+.video-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: calc(var(--radius) - 8px);
+  overflow: hidden;
+  background: #000;
+}
+.video-embed iframe, .video-embed__button { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-embed__button { padding: 0; }
+.video-embed__button img { width: 100%; height: 100%; object-fit: cover; transition: scale 0.6s ease, opacity 0.4s ease; }
+.video-embed__button:hover img { scale: 1.03; opacity: 0.85; }
+.video-embed__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  transition: transform 0.35s ease, background-color 0.35s ease;
+}
+.video-embed__icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  translate: -50% -50%;
+  border-style: solid;
+  border-width: 13px 0 13px 22px;
+  border-color: transparent transparent transparent var(--text);
+}
+.video-embed__button:hover .video-embed__icon { transform: scale(1.08); background: color-mix(in srgb, var(--accent) 35%, transparent); }
+
+/* --- misc content --------------------------------------------------------------- */
+.chips { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.chip {
+  padding: 0.45rem 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.studio-note p { max-width: 62ch; color: var(--text-dim); font-size: 1.05rem; }
+
+/* --- footer ------------------------------------------------------------------- */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 3rem clamp(1.25rem, 4vw, 3rem) 4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  align-items: center;
+  justify-content: space-between;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.site-footer nav { display: flex; flex-wrap: wrap; gap: 0.4rem 1.8rem; }
+.site-footer a { color: var(--text-dim); font-size: 0.92rem; transition: color 0.25s ease; }
+.site-footer a:hover { color: var(--text); }
+.site-footer .legal-note { color: var(--text-dim); font-size: 0.85rem; }
+
+/* --- legal pages ---------------------------------------------------------------- */
+main.legal {
+  max-width: 780px;
+  margin-inline: auto;
+  padding: max(16vh, 9rem) 1.5rem 6rem;
+}
+main.legal h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; }
+main.legal .updated {
+  margin: 0.8rem 0 3rem;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+main.legal h2 { font-size: 1.35rem; font-weight: 800; margin: 2.6rem 0 0.9rem; }
+main.legal p { color: var(--text-dim); margin-bottom: 1rem; }
+/* Legal pages have no WebGL canvas — give them a quiet accent wash instead. */
+body[data-page='legal'] {
+  background:
+    radial-gradient(90% 55% at 50% -10%, color-mix(in srgb, var(--accent) 14%, transparent) 0%, transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* --- responsive / reduced motion -------------------------------------------------- */
+@media (max-width: 640px) {
+  .brand span { display: none; } /* logo only, keep the bar tight */
+  .site-nav a { font-size: 0.85rem; }
+  .video-embed__icon { width: 64px; height: 64px; }
+  .video-embed__icon::after { border-width: 10px 0 10px 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue::after { animation: none; }
+  .webgl-canvas { transition: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
