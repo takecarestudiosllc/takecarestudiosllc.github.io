@@ -276,6 +276,55 @@ html.lenis, html.lenis body { height: auto; }
 }
 .video-embed__button:hover .video-embed__icon { transform: scale(1.08); background: color-mix(in srgb, var(--accent) 35%, transparent); }
 
+/* --- pinned scroll beats (home) ---------------------------------------------
+   A .pin-section is taller than the viewport; its .pin-viewport stays stuck
+   on screen (CSS sticky) while the extra height gives ScrollTrigger timelines
+   room to scrub the WebGL action behind it. */
+.pin-section { position: relative; }
+.pin-section--showcase { height: 260vh; }
+.pin-section--lotus { height: 380vh; }
+.pin-viewport {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  padding: 6rem clamp(1.25rem, 4vw, 3rem);
+}
+
+/* Beat 2 copy sits top-left; the model flies across the open space below it. */
+.showcase-copy { align-self: start; justify-self: start; max-width: 30rem; margin-top: 2rem; }
+.showcase-copy .section-title { margin-bottom: 1rem; }
+.showcase-sub { color: var(--text-dim); max-width: 40ch; }
+
+/* Beat 3: full-screen stage so the cards land centered in view. */
+.games-section {
+  min-height: 100svh;
+  max-width: none;           /* grid needs the full row; cards cap themselves */
+  display: grid;
+  align-content: center;
+  justify-items: center;
+}
+.games-section .section-title { text-align: center; }
+.games-section .game-grid { max-width: 1100px; width: 100%; }
+
+/* Beat 4: finale text floats above the blooming flower (which renders
+   center-low on the canvas behind). */
+.finale-copy {
+  align-self: start;
+  justify-self: center;
+  text-align: center;
+  margin-top: clamp(2rem, 12vh, 7rem);
+  max-width: 44rem;
+}
+.finale-title {
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.finale-sub { margin-top: 1.2rem; color: var(--text-dim); font-size: clamp(1rem, 2vw, 1.15rem); text-wrap: balance; }
+
 /* --- misc content --------------------------------------------------------------- */
 .chips { display: flex; flex-wrap: wrap; gap: 0.7rem; }
 .chip {

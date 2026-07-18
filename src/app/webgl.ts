@@ -12,15 +12,19 @@ import { createSceneForPage } from './SceneManager';
  */
 export function bootWebGL(page: string, quality: QualityProfile, scrub: boolean | number): void {
   const rig = new CameraRig(quality);
+  const renderer = new Renderer(quality);
   const scene = createSceneForPage(page, {
     rig,
     assets: new AssetLoader(),
     quality,
     scrub,
+    gl: renderer.gl,
   });
-  if (!scene) return;
+  if (!scene) {
+    renderer.dispose();
+    return;
+  }
 
-  const renderer = new Renderer(quality);
   scene.init();
   scene.buildScrollTimeline();
 

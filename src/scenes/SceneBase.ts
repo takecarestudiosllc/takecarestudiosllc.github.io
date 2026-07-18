@@ -10,6 +10,8 @@ export interface SceneContext {
   quality: QualityProfile;
   /** Scroll-scrub setting to use on ScrollTrigger timelines. */
   scrub: boolean | number;
+  /** Live renderer — lets scenes bake PMREM environment maps for PBR models. */
+  gl: THREE.WebGLRenderer;
 }
 
 /**
