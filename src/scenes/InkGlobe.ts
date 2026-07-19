@@ -6,6 +6,10 @@ export interface InkGlobeOptions {
   /** Aura shell diameter relative to the globe's; defaults to AURA_SCALE.
    *  Keep at or below AURA_SCALE — scene exit clearances assume it. */
   auraScale?: number;
+  /** Aura tint; defaults to the ink navy. */
+  auraColor?: number;
+  /** Peak aura alpha at the globe's silhouette; defaults to 0.5. */
+  auraOpacity?: number;
 }
 
 /** Aura shell diameter relative to the globe's — the fade-out span. Exported
@@ -76,6 +80,7 @@ export class InkGlobe {
     // sits far off the camera axis (a camera-facing sprite goes lopsided
     // there: the sphere projects as an offset ellipse, not a circle).
     const auraScale = opts.auraScale ?? AURA_SCALE;
+    const auraColor = opts.auraColor ?? INK_COLOR;
     this.auraGeometry = new THREE.SphereGeometry(radius * auraScale, segW, segH);
     // |view·normal| at the globe's silhouette as seen from far away — where
     // the fade should reach full strength.
@@ -89,12 +94,13 @@ export class InkGlobe {
         // THREE.Color's linear conversion would render nearly black).
         uColor: {
           value: new THREE.Vector3(
-            ((INK_COLOR >> 16) & 255) / 255,
-            ((INK_COLOR >> 8) & 255) / 255,
-            (INK_COLOR & 255) / 255,
+            ((auraColor >> 16) & 255) / 255,
+            ((auraColor >> 8) & 255) / 255,
+            (auraColor & 255) / 255,
           ),
         },
         uEdge: { value: edge },
+        uOpacity: { value: opts.auraOpacity ?? 0.5 },
       },
       vertexShader: /* glsl */ `
         varying float vDot;
@@ -108,10 +114,11 @@ export class InkGlobe {
       fragmentShader: /* glsl */ `
         uniform vec3 uColor;
         uniform float uEdge;
+        uniform float uOpacity;
         varying float vDot;
         void main() {
           float t = smoothstep(0.0, uEdge, vDot);
-          gl_FragColor = vec4(uColor, t * t * 0.5);
+          gl_FragColor = vec4(uColor, t * t * uOpacity);
         }
       `,
     });

@@ -57,9 +57,9 @@ function makeGlowTexture(): THREE.Texture {
   canvas.width = canvas.height = size;
   const g = canvas.getContext('2d')!;
   const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  grad.addColorStop(0, 'rgba(255, 236, 200, 1)');
-  grad.addColorStop(0.25, 'rgba(255, 205, 150, 0.55)');
-  grad.addColorStop(0.6, 'rgba(190, 130, 255, 0.16)');
+  grad.addColorStop(0, 'rgba(224, 240, 255, 1)');
+  grad.addColorStop(0.25, 'rgba(150, 198, 255, 0.55)');
+  grad.addColorStop(0.6, 'rgba(140, 150, 255, 0.16)');
   grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
@@ -67,6 +67,13 @@ function makeGlowTexture(): THREE.Texture {
 }
 
 const easeInOut = (t: number): number => t * t * (3 - 2 * t); // smoothstep
+
+/** Diffuse tint for the palm light's blue wash: white at rest → light blue
+ *  when glowing. Tinting the diffuse (not the emissive) survives the white
+ *  ceiling the scene lights push these materials against. (Shared with the
+ *  hand via HomeScene.) */
+export const GLOW_TINT_BASE = new THREE.Color(0xffffff);
+export const GLOW_TINT_BLUE = new THREE.Color(0x8fb3e8);
 
 export class LotusFlower {
   readonly group = new THREE.Group();
@@ -80,6 +87,8 @@ export class LotusFlower {
   private pivots: { pivot: THREE.Object3D; ring: RingSpec; phase: number }[] = [];
   private sprite: THREE.Sprite;
   private heart: THREE.Mesh;
+  /** Petal materials, tinted blue by the glow in update(). */
+  private petalMats: THREE.MeshToonMaterial[] = [];
 
   constructor() {
     // Comic-book petals: white cel-shaded fill (ring.color is unused while
@@ -90,7 +99,12 @@ export class LotusFlower {
         color: 0xffffff,
         gradientMap: toonGradient(),
         side: THREE.DoubleSide,
+        // Neutral emissive lift so the petals read bright white instead of
+        // taking the scene's violet rim light as a lavender tint — kept low
+        // enough that the cel bands still shade the form.
+        emissive: 0x48484c,
       });
+      this.petalMats.push(mat);
       for (let i = 0; i < ring.count; i++) {
         // wrapper spins around the stem axis; pivot tilts the petal open.
         const wrapper = new THREE.Group();
@@ -109,8 +123,8 @@ export class LotusFlower {
     this.heart = new THREE.Mesh(
       new THREE.SphereGeometry(0.13, 24, 16),
       new THREE.MeshStandardMaterial({
-        color: 0xffd27a,
-        emissive: 0xffb347,
+        color: 0xcfe4ff,
+        emissive: 0x7fb3ff,
         emissiveIntensity: 0.7,
         roughness: 0.4,
       }),
@@ -133,7 +147,7 @@ export class LotusFlower {
     this.sprite.position.y = 0.55;
     this.group.add(this.sprite);
 
-    this.light = new THREE.PointLight(0xffc98a, 0, 12, 1.8);
+    this.light = new THREE.PointLight(0x86b8ff, 0, 12, 1.8);
     this.light.position.y = 0.85;
     this.group.add(this.light);
   }
@@ -155,9 +169,16 @@ export class LotusFlower {
     this.head.rotation.y = elapsed * 0.1; // slow ceremonial turn
 
     const flicker = 1 + Math.sin(elapsed * 2.3) * 0.05 + Math.sin(elapsed * 5.1) * 0.03;
-    this.light.intensity = glow * 0.8 * flicker;
+    this.light.intensity = glow * 6 * flicker;
+    // The toon materials sit at their white ceiling under the scene lights,
+    // so the point light alone can't tint them — wash the diffuse color
+    // blue instead, breathing with the same flicker.
+    const wash = glow * (0.75 + 0.25 * flicker);
+    for (const mat of this.petalMats) {
+      mat.color.copy(GLOW_TINT_BASE).lerp(GLOW_TINT_BLUE, wash);
+    }
     const spriteMat = this.sprite.material as THREE.SpriteMaterial;
-    spriteMat.opacity = glow * 0.125 * (0.9 - 0.35 * bloom); // glow softens as petals take over
+    spriteMat.opacity = glow * 0.2 * (0.9 - 0.35 * bloom); // glow softens as petals take over
     const s = (0.6 + glow * 2.6 + bloom * 1.2) * flicker;
     this.sprite.scale.setScalar(s);
   }

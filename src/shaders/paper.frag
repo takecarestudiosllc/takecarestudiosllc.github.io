@@ -1,5 +1,6 @@
-// Home page backdrop: paper-white field with slow black ink-nebula clouds
-// while the hero is on screen (uClouds 1 → 0 fades them with the hero exit).
+// Home page backdrop: a deep night sky with slow white cloud banks while the
+// hero is on screen; uClouds 1 → 0 cross-fades the whole field to the
+// gunmetal page gray (uColorA/B) as the hero exits.
 // Needs the shared noise chunk (fbm) prepended by src/shaders/index.ts.
 varying vec2 vUv;
 
@@ -9,8 +10,8 @@ uniform float uAspect;
 uniform vec2 uPointer;
 uniform vec3 uColorA;    // page white
 uniform vec3 uColorB;    // faint corner wash so the field isn't sterile
-uniform vec3 uColorC;    // unused (nebula color comes from the shared chroma())
-uniform float uClouds;   // hero-exit fade for the nebula
+uniform vec3 uColorC;    // unused (nebula color comes from the blue ramp below)
+uniform float uClouds;   // hero-exit fade for the night sky + clouds
 uniform vec2 uMouse;     // smoothed pointer, aspect-corrected uv space
 uniform vec2 uMouseVel;  // smoothed pointer velocity (uv units / s, clamped)
 
@@ -18,6 +19,11 @@ void main() {
   vec2 uv = (vUv - 0.5) * vec2(uAspect, 1.0);
   float wash = smoothstep(0.55, 1.25, length(uv));
   vec3 col = mix(uColorA, uColorB, wash * 0.6);
+  // Night sky under the hero: deep navy, corners a touch lighter so the
+  // field isn't flat. Cross-faded with the paper white by the same uClouds
+  // that fades the cloud banks.
+  vec3 night = mix(vec3(0.016, 0.04, 0.11), vec3(0.045, 0.085, 0.19), wash);
+  col = mix(col, night, uClouds);
 
   if (uClouds > 0.003) {
     // Liquid distortion around the cursor (hero only — uClouds gates it):
@@ -49,11 +55,13 @@ void main() {
     // field rather than sparse islands. The hero copy's white halo carries
     // legibility, so no center clearing is carved out.
     float nebula = smoothstep(0.32, 0.8, n);
-    // Hue drifts with time and swirls with the same warp field that shapes
-    // the clouds, so color bands follow the filaments instead of sitting in
+    // Moonlit clouds: a cosine wave cycles white → light blue → white,
+    // drifting with time and swirling with the same warp field that shapes
+    // the clouds, so the bands follow the filaments instead of sitting in
     // flat stripes.
-    vec3 ink = chroma(uv.x * 0.12 + q.x * 0.3 + uTime * 0.02);
-    col = mix(col, ink, nebula * 0.6 * uClouds);
+    float shade = 0.5 + 0.5 * cos(6.28318 * (uv.x * 0.12 + q.x * 0.3 + uTime * 0.02));
+    vec3 cloud = mix(vec3(0.62, 0.76, 0.94), vec3(1.0), shade);
+    col = mix(col, cloud, nebula * 0.55 * uClouds);
   }
 
   gl_FragColor = vec4(col, 1.0);

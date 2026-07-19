@@ -23,35 +23,28 @@
 	<main>
 		<!-- Hero: important text lives in the DOM; the WebGL nebula is backdrop only -->
 		<section class="hero">
-			<p class="hero-eyebrow" data-hero-fade>Independent Interactive Studio</p>
 			<h1 class="hero-title" data-split>Giving Ideas Life</h1>
 			<p class="hero-sub" data-hero-fade>
-				Take Care Studios is a independent developer building VR games
-				and mobile apps.
+				Take Care Studios LLC is an independent developer building
+				interactive VR games and mobile apps.
 			</p>
 			<div class="scroll-cue" data-hero-fade><span>Scroll</span></div>
 		</section>
 
-		<!-- Beat 2: game cards slide in from off-screen right as you scroll. -->
-		<section class="section games-section" id="games" aria-labelledby="games-title">
-			<h2 class="section-title" id="games-title" data-reveal>VR Games</h2>
-			<div class="game-grid">
-				<a class="game-card glass" href="/sixsevenvr.html" data-slide-in>
-					<div class="game-card__media">
-						<img src="/images/67LOGO_promotile_1440x810.png" alt="Six Seven VR key art" width="1440" height="810" data-parallax="0.05">
-					</div>
-					<h3>Six Seven VR</h3>
-					<p>The internet&rsquo;s favorite numbers, unleashed in virtual reality.</p>
-					<span class="cta">View game &rarr;</span>
-				</a>
-				<a class="game-card glass" href="/tgsvr.html" data-slide-in>
-					<div class="game-card__media">
-						<img src="/images/mainimage1.png" alt="Touch Grass! VR Simulator key art" width="1920" height="1080" data-parallax="0.05">
-					</div>
-					<h3>Touch Grass! VR Simulator</h3>
-					<p>A sunny meadow, one headset away.</p>
-					<span class="cta">View game &rarr;</span>
-				</a>
+		<!-- Beat 2: pinned viewport — in WebGL a headset descends and lands on a
+		     surface under a moonbeam while this copy sits top-left. -->
+		<section class="pin-section pin-section--games" id="games" aria-labelledby="games-title">
+			<div class="pin-viewport">
+				<div class="showcase-copy">
+					<p class="hero-eyebrow" data-reveal>VR Games</p>
+					<h2 class="section-title" id="games-title" data-reveal>Worlds you can step into</h2>
+					<p class="showcase-sub" data-reveal>
+						Making VR games — small, handcrafted worlds you put on
+						like a pair of glasses.
+						<a href="https://store.steampowered.com/app/3105020/Touch_Grass_VR_Simulator/" target="_blank" rel="noopener">Touch Grass</a>
+						in virtual reality so you don&rsquo;t have to in real life.
+					</p>
+				</div>
 			</div>
 		</section>
 
@@ -63,9 +56,8 @@
 					<p class="hero-eyebrow" data-reveal>Mobile Apps</p>
 					<h2 class="section-title" id="showcase-title" data-reveal>Apps that fit in your pocket</h2>
 					<p class="showcase-sub" data-reveal>
-						We build mobile apps with the same care as our games —
-						small, useful, and pleasant to hold, right on the phone
-						you already carry.
+						Building mobile apps for everyday use. Learn Chinese
+						with the node based visual character learning app Zhong.
 					</p>
 				</div>
 			</div>
@@ -77,10 +69,6 @@
 			<div class="pin-viewport">
 				<div class="finale-copy" data-finale>
 					<h2 class="finale-title" id="lotus-title">Something new is growing</h2>
-					<p class="finale-sub">
-						Take Care Studios LLC makes small, joyful VR games and
-						mobile apps. Take a break, and take care of yourself.
-					</p>
 				</div>
 			</div>
 		</section>

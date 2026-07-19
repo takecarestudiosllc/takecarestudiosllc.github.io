@@ -11,7 +11,10 @@ let gradient: THREE.DataTexture | null = null;
 /** Hard 3-step luminance ramp — the cel bands of the toon shading. */
 export function toonGradient(): THREE.Texture {
   if (!gradient) {
-    gradient = new THREE.DataTexture(new Uint8Array([140, 210, 255]), 3, 1, THREE.RedFormat);
+    // Bright but distinct bands — the shadow step stays light so the hand
+    // and lotus read white on the dark field, while the three steps keep
+    // visibly different values so the cel shading still draws the form.
+    gradient = new THREE.DataTexture(new Uint8Array([170, 220, 255]), 3, 1, THREE.RedFormat);
     gradient.minFilter = THREE.NearestFilter;
     gradient.magFilter = THREE.NearestFilter;
     gradient.needsUpdate = true;

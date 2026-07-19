@@ -33,18 +33,14 @@
   --font: 'Excluded', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --radius: 22px;
 }
-/* Home is the light page: paper-white field, black lattice at the edges. */
+/* Home is dark end to end: night-sky hero up top, gunmetal gray below. */
 body[data-theme='home'] {
-  --bg: #ffffff;
-  --text: #0b0b0e;
-  --text-dim: rgba(11, 11, 14, 0.64);
-  --line: rgba(0, 0, 0, 0.14);
-  --glass: rgba(255, 255, 255, 0.6);
-  --accent: #5a49d6; /* darker violet — the dark-page accent fails contrast on white */
+  --bg: #2a3038;
+  --text: #f0f2f5;
+  --text-dim: rgba(240, 242, 245, 0.68);
+  --line: rgba(255, 255, 255, 0.14);
+  --glass: rgba(24, 28, 34, 0.5);
 }
-/* The studio wordmark is black-on-transparent — correct as-is on white. */
-body[data-theme='home'] .brand img.brand-script,
-body[data-theme='home'] .hero-brandmark { filter: none; }
 body[data-theme='sixseven'] { --accent: #ffa02a; --glass: rgba(20, 6, 2, 0.55); }
 body[data-theme='touchgrass'] {
   --accent: #eaffbb;
@@ -81,7 +77,9 @@ body {
 
 /* CSS-only fallback backgrounds (visible before the canvas fades in, and on
    browsers without WebGL) — rough matches of each page's shader palette. */
-body[data-page='home'] { background: #ffffff; }
+/* Home: night-sky hero on top, gunmetal gray below (the shader cross-fades
+   the same way as you scroll out of the hero). */
+body[data-page='home'] { background: linear-gradient(180deg, #060d24 0%, #060d24 85svh, #2a3038 115svh); }
 body[data-page='sixseven'] { background: radial-gradient(120% 100% at 50% 20%, #7a1b04 0%, #330502 70%); }
 body[data-page='touchgrass'] { background: linear-gradient(180deg, #b9ec55 0%, #46b31f 80%); }
 
@@ -138,21 +136,46 @@ html.lenis, html.lenis body { height: auto; }
 }
 .site-nav a:hover { color: var(--text); }
 
+/* Description copy reads in Roboto; the display font (Excluded) stays for
+   headings, eyebrows, and UI text. */
+.hero-sub,
+.showcase-sub,
+.finale-sub {
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
 /* --- hero -------------------------------------------------------------------- */
-/* Home hero copy floats over the dark ink globes — a layered white halo
-   (tight shadows for the outline, wide ones for glow) keeps it legible when
-   a globe passes behind it. */
+/* Home hero copy floats over the night sky — light text with a layered dark
+   halo (tight shadows for the outline, wide ones for glow) stays legible
+   when the white clouds or the bright moon pass behind it. */
 body[data-theme='home'] .hero-eyebrow,
 body[data-theme='home'] .hero-title,
 body[data-theme='home'] .hero-sub,
 body[data-theme='home'] .scroll-cue {
   text-shadow:
-    0 0 1px #fff,
-    0 0 2px #fff,
-    0 0 4px #fff,
-    0 0 10px #fff,
-    0 0 22px #fff,
-    0 0 36px #fff;
+    0 0 1px rgba(4, 10, 30, 0.95),
+    0 0 2px rgba(4, 10, 30, 0.9),
+    0 0 4px rgba(4, 10, 30, 0.85),
+    0 0 10px rgba(4, 10, 30, 0.7),
+    0 0 22px rgba(4, 10, 30, 0.55),
+    0 0 36px rgba(4, 10, 30, 0.4);
+}
+body[data-theme='home'] .hero-title { color: #f2f6ff; }
+body[data-theme='home'] .hero-sub { color: #b9c6e4; }
+body[data-theme='home'] .scroll-cue { color: #8fa0c8; }
+/* Big display text: crisp black outline (8-direction shadow) with a soft
+   dark halo behind it. Placed after the hero halo rule so it wins there. */
+body[data-page='home'] .hero-title,
+body[data-page='home'] .section-title,
+body[data-page='home'] .finale-title {
+  text-shadow:
+    -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000,
+    -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000,
+    -1.5px 0 0 #000, 1.5px 0 0 #000,
+    0 -1.5px 0 #000, 0 1.5px 0 #000,
+    0 0 10px rgba(4, 10, 30, 0.7),
+    0 0 22px rgba(4, 10, 30, 0.55),
+    0 0 36px rgba(4, 10, 30, 0.4);
 }
 .hero {
   min-height: 100svh;
@@ -210,6 +233,14 @@ body[data-theme='home'] .scroll-cue {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+/* The word breathes: fades in and out, staying very faint even at peak.
+   Animated on the span (not the container) so it doesn't fight the GSAP
+   scroll-out fade on .scroll-cue itself. */
+.scroll-cue span { animation: cue-fade 2.6s ease-in-out infinite; }
+@keyframes cue-fade {
+  0%, 100% { opacity: 0.04; }
+  50% { opacity: 0.3; }
 }
 .scroll-cue::after {
   content: '';
@@ -334,16 +365,11 @@ body[data-theme='home'] .scroll-cue {
 .showcase-copy .section-title { margin-bottom: 1rem; }
 .showcase-sub { color: var(--text-dim); max-width: 40ch; }
 
-/* Beat 3: full-screen stage so the cards land centered in view. */
-.games-section {
-  min-height: 100svh;
-  max-width: none;           /* grid needs the full row; cards cap themselves */
-  display: grid;
-  align-content: center;
-  justify-items: center;
-}
-.games-section .section-title { text-align: center; }
-.games-section .game-grid { max-width: 1100px; width: 100%; }
+/* Beat 2: pinned games beat — copy top-left, the headset lands on its
+   surface in the open space to the right. */
+.pin-section--games { height: 240vh; }
+.showcase-sub a { color: var(--accent); font-weight: 600; }
+.showcase-sub a:hover { text-decoration: underline; }
 
 /* Beat 4: finale text floats above the blooming flower (which renders
    center-low on the canvas behind). */

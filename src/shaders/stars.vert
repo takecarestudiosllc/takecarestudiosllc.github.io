@@ -40,7 +40,8 @@ void main() {
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
   // Defocus reads as growing softly while losing alpha, so scale up with exit.
-  float size = uSize * (0.6 + 0.9 * aSeed) * (0.3 + 1.2 * pulse) * (1.0 + uExit * 2.5);
+  // Rest size is half the twinkle peak so stars stay visible between pulses.
+  float size = uSize * (0.6 + 0.9 * aSeed) * (0.75 + 0.75 * pulse) * (1.0 + uExit * 2.5);
   gl_PointSize = size * uScale / -mv.z;
   gl_Position = projectionMatrix * mv;
 }
