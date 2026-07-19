@@ -3,6 +3,7 @@
  * noise chunk prepended here so the .frag files stay focused on their look.
  */
 import noise from './chunks/noise.glsl?raw';
+import chroma from './chunks/chroma.glsl?raw';
 import backdropVert from './backdrop.vert?raw';
 import nebulaFrag from './nebula.frag?raw';
 import paperFrag from './paper.frag?raw';
@@ -10,17 +11,21 @@ import lavaFrag from './lava.frag?raw';
 import meadowFrag from './meadow.frag?raw';
 import particlesVert from './particles.vert?raw';
 import particlesFrag from './particles.frag?raw';
+import starsVert from './stars.vert?raw';
+import starsFrag from './stars.frag?raw';
 import grassVert from './grass.vert?raw';
 import grassFrag from './grass.frag?raw';
 
 export const shaders = {
   backdropVert,
   nebulaFrag: noise + nebulaFrag,
-  paperFrag,
+  paperFrag: noise + chroma + paperFrag,
   lavaFrag: noise + lavaFrag,
   meadowFrag: noise + meadowFrag,
   particlesVert,
   particlesFrag,
+  starsVert,
+  starsFrag: chroma + starsFrag,
   grassVert,
   grassFrag,
 } as const;

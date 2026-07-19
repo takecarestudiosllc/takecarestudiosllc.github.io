@@ -3,10 +3,18 @@ import * as THREE from 'three';
 export interface InkGlobeOptions {
   /** [width, height] segment counts of the sphere geometry. */
   segments?: [number, number];
+  /** Aura shell diameter relative to the globe's; defaults to AURA_SCALE.
+   *  Keep at or below AURA_SCALE — scene exit clearances assume it. */
+  auraScale?: number;
 }
 
-/** Aura sprite diameter relative to the globe's — the fade-out span. */
-const AURA_SCALE = 1.45;
+/** Aura shell diameter relative to the globe's — the fade-out span. Exported
+ *  so scenes can keep the aura in mind when sliding globes off-screen. */
+export const AURA_SCALE = 1.225;
+
+/** The globes' "ink": dark navy instead of black, for both the darkest
+ *  texture values and the aura tint. */
+const INK_COLOR = 0x0f1e46;
 
 /**
  * Decorative monochrome globe: a sphere wrapped in an equirectangular planet
@@ -21,60 +29,104 @@ export class InkGlobe {
   readonly group = new THREE.Group();
 
   private geometry: THREE.SphereGeometry;
-  private material: THREE.MeshBasicMaterial;
-  private auraMaterial: THREE.SpriteMaterial;
-
-  private static auraTexture: THREE.Texture | null = null;
+  private material: THREE.ShaderMaterial;
+  private auraGeometry: THREE.SphereGeometry;
+  private auraMaterial: THREE.ShaderMaterial;
 
   constructor(radius: number, map: THREE.Texture, opts: InkGlobeOptions = {}) {
     const [segW, segH] = opts.segments ?? [48, 32];
     this.geometry = new THREE.SphereGeometry(radius, segW, segH);
-    this.material = new THREE.MeshBasicMaterial({ map });
+    // The map stores ink strength as grayscale (0 = full ink, 1 = paper);
+    // the dark end renders as INK_COLOR navy so the globes match their auras.
+    this.material = new THREE.ShaderMaterial({
+      uniforms: {
+        uMap: { value: map },
+        // Raw sRGB channels (the shader writes to an sRGB target directly).
+        uInk: {
+          value: new THREE.Vector3(
+            ((INK_COLOR >> 16) & 255) / 255,
+            ((INK_COLOR >> 8) & 255) / 255,
+            (INK_COLOR & 255) / 255,
+          ),
+        },
+      },
+      vertexShader: /* glsl */ `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform sampler2D uMap;
+        uniform vec3 uInk;
+        varying vec2 vUv;
+        void main() {
+          float t = texture2D(uMap, vUv).r;
+          gl_FragColor = vec4(mix(uInk, vec3(1.0), t), 1.0);
+        }
+      `,
+    });
     this.group.add(new THREE.Mesh(this.geometry, this.material));
 
-    // Black aura: a camera-facing sprite centered on the globe. Its gradient
-    // is solid ink out to the globe's silhouette (a crisp rim against the
-    // pale surface — the near hemisphere occludes the rest) and fades beyond.
-    this.auraMaterial = new THREE.SpriteMaterial({
-      map: InkGlobe.getAuraTexture(),
-      color: 0x111114,
+    // Black aura: a larger back-side shell whose alpha fades with the view
+    // angle — full ink where the globe's silhouette cuts it, transparent at
+    // the shell's own rim. Because it's real geometry it projects exactly
+    // like the globe does, so the halo stays concentric even when the globe
+    // sits far off the camera axis (a camera-facing sprite goes lopsided
+    // there: the sphere projects as an offset ellipse, not a circle).
+    const auraScale = opts.auraScale ?? AURA_SCALE;
+    this.auraGeometry = new THREE.SphereGeometry(radius * auraScale, segW, segH);
+    // |view·normal| at the globe's silhouette as seen from far away — where
+    // the fade should reach full strength.
+    const edge = Math.sqrt(1 - 1 / (auraScale * auraScale));
+    this.auraMaterial = new THREE.ShaderMaterial({
+      side: THREE.BackSide,
       transparent: true,
       depthWrite: false,
+      uniforms: {
+        // Raw sRGB channels (the shader writes to an sRGB target directly;
+        // THREE.Color's linear conversion would render nearly black).
+        uColor: {
+          value: new THREE.Vector3(
+            ((INK_COLOR >> 16) & 255) / 255,
+            ((INK_COLOR >> 8) & 255) / 255,
+            (INK_COLOR & 255) / 255,
+          ),
+        },
+        uEdge: { value: edge },
+      },
+      vertexShader: /* glsl */ `
+        varying float vDot;
+        void main() {
+          vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+          vec3 n = normalize(normalMatrix * normal);
+          vDot = abs(dot(n, normalize(-mvPos.xyz)));
+          gl_Position = projectionMatrix * mvPos;
+        }
+      `,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uColor;
+        uniform float uEdge;
+        varying float vDot;
+        void main() {
+          float t = smoothstep(0.0, uEdge, vDot);
+          gl_FragColor = vec4(uColor, t * t * 0.5);
+        }
+      `,
     });
-    const aura = new THREE.Sprite(this.auraMaterial);
-    aura.scale.setScalar(radius * 2 * AURA_SCALE);
-    this.group.add(aura);
-  }
-
-  /** Shared radial-gradient sprite: white ink (tinted by the material color),
-   *  solid to the globe edge, easing to transparent at the sprite rim. */
-  private static getAuraTexture(): THREE.Texture {
-    if (!InkGlobe.auraTexture) {
-      const size = 256;
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = size;
-      const g = canvas.getContext('2d')!;
-      const edge = 1 / AURA_SCALE; // globe silhouette as a fraction of the sprite
-      const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-      grad.addColorStop(0, 'rgba(255,255,255,1)');
-      grad.addColorStop(edge, 'rgba(255,255,255,1)');
-      grad.addColorStop(edge + (1 - edge) * 0.35, 'rgba(255,255,255,0.3)');
-      grad.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = grad;
-      g.fillRect(0, 0, size, size);
-      InkGlobe.auraTexture = new THREE.CanvasTexture(canvas);
-    }
-    return InkGlobe.auraTexture;
+    this.group.add(new THREE.Mesh(this.auraGeometry, this.auraMaterial));
   }
 
   /**
-   * Reduce a loaded color map to grayscale ink (luminance + a gentle contrast
-   * push so surface features read). With `invert` (the default) values are
-   * flipped so dark regions print white and bright ones dark — pass false to
-   * keep the map's natural brightness. Pixel loop instead of a canvas filter
-   * for consistent output across browsers. Call once per source map; the
-   * returned texture may be shared between globes and is not disposed by
-   * dispose().
+   * Reduce a loaded color map to an ink-strength mask: luminance with a
+   * gentle contrast push so surface features read, stored as grayscale
+   * (0 = full ink, 1 = paper white) for the surface shader to colorize.
+   * With `invert` (the default) values are flipped so dark regions print
+   * white and bright ones dark — pass false to keep the map's natural
+   * brightness. Pixel loop instead of a canvas filter for consistent output
+   * across browsers. Call once per source map; the returned texture may be
+   * shared between globes and is not disposed by dispose().
    */
   static toInk(source: THREE.Texture, invert = true): THREE.CanvasTexture {
     const img = source.image as HTMLImageElement;
@@ -92,7 +144,9 @@ export class InkGlobe {
     }
     g.putImageData(pixels, 0, 0);
     const tex = new THREE.CanvasTexture(canvas);
-    tex.colorSpace = THREE.SRGBColorSpace;
+    // Data texture, not imagery: the shader reads ink strength verbatim, so
+    // skip the sRGB decode that would bend the ramp.
+    tex.colorSpace = THREE.NoColorSpace;
     tex.anisotropy = 4;
     return tex;
   }
@@ -100,6 +154,7 @@ export class InkGlobe {
   dispose(): void {
     this.geometry.dispose();
     this.material.dispose();
+    this.auraGeometry.dispose();
     this.auraMaterial.dispose();
   }
 }

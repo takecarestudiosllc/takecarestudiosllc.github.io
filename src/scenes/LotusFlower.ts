@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { toonGradient, addOutline } from './toon';
 
 /**
  * Procedural lotus flower that blooms under scroll control.
@@ -81,14 +82,13 @@ export class LotusFlower {
   private heart: THREE.Mesh;
 
   constructor() {
+    // Comic-book petals: white cel-shaded fill (ring.color is unused while
+    // this style is in) with a black ink outline hull per petal.
     for (const ring of RINGS) {
       const geo = makePetalGeometry(ring.length, ring.width);
-      const mat = new THREE.MeshStandardMaterial({
-        color: ring.color,
-        emissive: ring.color,
-        emissiveIntensity: 0.08,
-        roughness: 0.55,
-        metalness: 0,
+      const mat = new THREE.MeshToonMaterial({
+        color: 0xffffff,
+        gradientMap: toonGradient(),
         side: THREE.DoubleSide,
       });
       for (let i = 0; i < ring.count; i++) {
@@ -97,7 +97,9 @@ export class LotusFlower {
         wrapper.rotation.y = (i / ring.count) * Math.PI * 2 + ring.delay * 2; // offset rings so petals interleave
         const pivot = new THREE.Group();
         pivot.position.z = ring.radius;
-        pivot.add(new THREE.Mesh(geo, mat));
+        const petal = new THREE.Mesh(geo, mat);
+        pivot.add(petal);
+        addOutline(petal, 0.02);
         wrapper.add(pivot);
         this.head.add(wrapper);
         this.pivots.push({ pivot, ring, phase: i * 1.7 });
@@ -109,7 +111,7 @@ export class LotusFlower {
       new THREE.MeshStandardMaterial({
         color: 0xffd27a,
         emissive: 0xffb347,
-        emissiveIntensity: 1.4,
+        emissiveIntensity: 0.7,
         roughness: 0.4,
       }),
     );
@@ -126,10 +128,13 @@ export class LotusFlower {
         opacity: 0,
       }),
     );
+    // The glow hovers above the flower's center rather than sitting in the
+    // palm, so it reads as the bloom's radiance, not a light on the hand.
+    this.sprite.position.y = 0.55;
     this.group.add(this.sprite);
 
     this.light = new THREE.PointLight(0xffc98a, 0, 12, 1.8);
-    this.light.position.y = 0.25;
+    this.light.position.y = 0.85;
     this.group.add(this.light);
   }
 
@@ -150,9 +155,9 @@ export class LotusFlower {
     this.head.rotation.y = elapsed * 0.1; // slow ceremonial turn
 
     const flicker = 1 + Math.sin(elapsed * 2.3) * 0.05 + Math.sin(elapsed * 5.1) * 0.03;
-    this.light.intensity = glow * 3.25 * flicker;
+    this.light.intensity = glow * 0.8 * flicker;
     const spriteMat = this.sprite.material as THREE.SpriteMaterial;
-    spriteMat.opacity = glow * 0.5 * (0.9 - 0.35 * bloom); // glow softens as petals take over
+    spriteMat.opacity = glow * 0.125 * (0.9 - 0.35 * bloom); // glow softens as petals take over
     const s = (0.6 + glow * 2.6 + bloom * 1.2) * flicker;
     this.sprite.scale.setScalar(s);
   }

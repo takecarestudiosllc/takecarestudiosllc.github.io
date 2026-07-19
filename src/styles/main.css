@@ -5,6 +5,24 @@
    Theme accents come from <body data-theme="...">.
    ========================================================================== */
 
+/* "Excluded" by Foyezes (fontspace.com/excluded-font-f43356), free for
+   commercial use. Regular + italic; other weights are browser-synthesized.
+   Roboto stays in the stack for any glyphs Excluded lacks. */
+@font-face {
+  font-family: 'Excluded';
+  src: url('/fonts/excluded.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Excluded';
+  src: url('/fonts/excluded-italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root {
   --bg: #08080b;
   --text: #f4f3f0;
@@ -12,7 +30,7 @@
   --line: rgba(255, 255, 255, 0.12);
   --glass: rgba(10, 10, 14, 0.5);
   --accent: #8b7dff;
-  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font: 'Excluded', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --radius: 22px;
 }
 /* Home is the light page: paper-white field, black lattice at the edges. */
@@ -121,6 +139,21 @@ html.lenis, html.lenis body { height: auto; }
 .site-nav a:hover { color: var(--text); }
 
 /* --- hero -------------------------------------------------------------------- */
+/* Home hero copy floats over the dark ink globes — a layered white halo
+   (tight shadows for the outline, wide ones for glow) keeps it legible when
+   a globe passes behind it. */
+body[data-theme='home'] .hero-eyebrow,
+body[data-theme='home'] .hero-title,
+body[data-theme='home'] .hero-sub,
+body[data-theme='home'] .scroll-cue {
+  text-shadow:
+    0 0 1px #fff,
+    0 0 2px #fff,
+    0 0 4px #fff,
+    0 0 10px #fff,
+    0 0 22px #fff,
+    0 0 36px #fff;
+}
 .hero {
   min-height: 100svh;
   display: grid;
@@ -172,7 +205,7 @@ html.lenis, html.lenis body { height: auto; }
   display: grid;
   justify-items: center;
   gap: 0.5rem;
-  font-size: 0.72rem;
+  font-size: 0.58rem;
   font-weight: 600;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -344,7 +377,7 @@ html.lenis, html.lenis body { height: auto; }
 /* --- footer ------------------------------------------------------------------- */
 .site-footer {
   border-top: 1px solid var(--line);
-  padding: 3rem clamp(1.25rem, 4vw, 3rem) 4rem;
+  padding: 1rem clamp(1.25rem, 4vw, 3rem) 1.3rem;
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem 3rem;

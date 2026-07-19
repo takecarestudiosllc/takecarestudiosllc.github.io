@@ -19,7 +19,13 @@ export class Backdrop {
     uColorC: THREE.IUniform<THREE.Color>;
   };
 
-  constructor(fragmentShader: string, colors: { a: number; b: number; c: number }) {
+  constructor(
+    fragmentShader: string,
+    colors: { a: number; b: number; c: number },
+    /** Extra shader-specific uniforms (e.g. paper.frag's uClouds). Shared by
+     *  reference, so the caller can keep tweening the objects it passed. */
+    extra: Record<string, THREE.IUniform<number | THREE.Vector2>> = {},
+  ) {
     this.uniforms = {
       uTime: { value: 0 },
       uScroll: { value: 0 },
@@ -32,7 +38,7 @@ export class Backdrop {
     const material = new THREE.ShaderMaterial({
       vertexShader: shaders.backdropVert,
       fragmentShader,
-      uniforms: this.uniforms,
+      uniforms: { ...this.uniforms, ...extra },
       depthTest: false,
       depthWrite: false,
     });

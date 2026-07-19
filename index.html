@@ -4,62 +4,37 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Take Care Studios</title>
-	<meta name="description" content="Take Care Studios LLC — an independent studio making playful virtual-reality experiences. Home of Six Seven VR and Touch Grass! VR Simulator.">
+	<meta name="description" content="Take Care Studios LLC — an independent studio making VR games and mobile apps. Home of Six Seven VR and Touch Grass! VR Simulator.">
 	<meta name="author" content="Take Care Studios LLC">
-	<meta name="keywords" content="VR, virtual reality, Take Care Studios, Six Seven VR, Touch Grass VR">
+	<meta name="keywords" content="VR, virtual reality, mobile apps, Take Care Studios, Six Seven VR, Touch Grass VR">
 	<meta name="robots" content="index, follow">
 	<meta property="og:title" content="Take Care Studios">
-	<meta property="og:description" content="Independent studio making playful virtual-reality experiences.">
+	<meta property="og:description" content="Independent studio making VR games and mobile apps.">
 	<meta property="og:type" content="website">
 	<meta property="og:image" content="/images/takecare_logoonly.png">
 	<link rel="icon" href="/images/air_icon.png">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap" rel="stylesheet">
 	<script type="module" src="/src/main.ts"></script>
 </head>
 
 <body data-page="home" data-theme="home">
-	<header class="site-header">
-		<a class="brand" href="/index.html" aria-label="Take Care Studios — home">
-			<img class="brand-script" src="/images/takecare_logoonly.png" alt="Take Care Studios" width="2322" height="1161">
-		</a>
-		<nav class="site-nav" aria-label="Games">
-			<a href="/sixsevenvr.html">Six Seven VR</a>
-			<a href="/tgsvr.html">Touch Grass VR</a>
-		</nav>
-	</header>
-
 	<main>
 		<!-- Hero: important text lives in the DOM; the WebGL nebula is backdrop only -->
 		<section class="hero">
-			<p class="hero-eyebrow" data-hero-fade>Independent VR Studio</p>
-			<h1 class="hero-title" data-split>Playful worlds, made with care</h1>
+			<p class="hero-eyebrow" data-hero-fade>Independent Interactive Studio</p>
+			<h1 class="hero-title" data-split>Giving Ideas Life</h1>
 			<p class="hero-sub" data-hero-fade>
-				Take Care Studios is an independent studio crafting playful
-				virtual-reality experiences for SteamVR and Meta Quest.
+				Take Care Studios is a independent developer building VR games
+				and mobile apps.
 			</p>
 			<div class="scroll-cue" data-hero-fade><span>Scroll</span></div>
 		</section>
 
-		<!-- Beat 2: pinned viewport — the 3D model crosses right-to-left in WebGL
-		     behind this copy while the section scrolls through. -->
-		<section class="pin-section pin-section--showcase" id="model-showcase" aria-labelledby="showcase-title">
-			<div class="pin-viewport">
-				<div class="showcase-copy">
-					<p class="hero-eyebrow" data-reveal>Built in three dimensions</p>
-					<h2 class="section-title" id="showcase-title" data-reveal>Worlds you can hold</h2>
-					<p class="showcase-sub" data-reveal>
-						Every Take Care Studios experience starts as a physical thing —
-						modeled, lit, and tuned until it feels real in your hands.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<!-- Beat 3: game cards slide in from off-screen right as you scroll. -->
+		<!-- Beat 2: game cards slide in from off-screen right as you scroll. -->
 		<section class="section games-section" id="games" aria-labelledby="games-title">
-			<h2 class="section-title" id="games-title" data-reveal>Our Games</h2>
+			<h2 class="section-title" id="games-title" data-reveal>VR Games</h2>
 			<div class="game-grid">
 				<a class="game-card glass" href="/sixsevenvr.html" data-slide-in>
 					<div class="game-card__media">
@@ -80,6 +55,22 @@
 			</div>
 		</section>
 
+		<!-- Beat 3: pinned viewport — the 3D model crosses right-to-left in WebGL
+		     behind this copy while the section scrolls through. -->
+		<section class="pin-section pin-section--showcase" id="model-showcase" aria-labelledby="showcase-title">
+			<div class="pin-viewport">
+				<div class="showcase-copy">
+					<p class="hero-eyebrow" data-reveal>Mobile Apps</p>
+					<h2 class="section-title" id="showcase-title" data-reveal>Apps that fit in your pocket</h2>
+					<p class="showcase-sub" data-reveal>
+						We build mobile apps with the same care as our games —
+						small, useful, and pleasant to hold, right on the phone
+						you already carry.
+					</p>
+				</div>
+			</div>
+		</section>
+
 		<!-- Beat 4: pinned finale — a hand rises from below in WebGL, the light in
 		     its palm blooms into a lotus, then this text appears. -->
 		<section class="pin-section pin-section--lotus" id="lotus" aria-labelledby="lotus-title">
@@ -87,8 +78,8 @@
 				<div class="finale-copy" data-finale>
 					<h2 class="finale-title" id="lotus-title">Something new is growing</h2>
 					<p class="finale-sub">
-						Take Care Studios LLC makes small, joyful VR games.
-						Put on a headset, take a break, and take care of yourself.
+						Take Care Studios LLC makes small, joyful VR games and
+						mobile apps. Take a break, and take care of yourself.
 					</p>
 				</div>
 			</div>

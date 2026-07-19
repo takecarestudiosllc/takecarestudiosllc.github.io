@@ -1,4 +1,4 @@
-# 3D model licenses
+# Asset licenses (models, textures, fonts)
 
 - `phone.glb` — "Smartphone 3" by timurkoba92 (Sketchfab), via
   https://sketchfab.com/3d-models/e3f7be1f4f1c4142bba557df43858bd7
@@ -13,3 +13,6 @@
 - `../textures/moon_1024.jpg` — NASA SVS "CGI Moon Kit" LROC color map
   (svs.gsfc.nasa.gov/4720). NASA imagery — public domain, no attribution
   required.
+- `../fonts/excluded.ttf`, `../fonts/excluded-italic.ttf` — "Excluded" by
+  Foyezes (fontspace.com/excluded-font-f43356). Listed free for personal AND
+  commercial use.

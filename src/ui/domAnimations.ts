@@ -22,12 +22,15 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 export function initDomAnimations(quality: QualityProfile): void {
   document.body.classList.add('js');
 
-  // Header gains a solid backdrop once the page is scrolled.
-  ScrollTrigger.create({
-    start: 30,
-    end: 'max',
-    toggleClass: { targets: '.site-header', className: 'is-scrolled' },
-  });
+  // Header gains a solid backdrop once the page is scrolled. (The home page
+  // has no header — its hero stands alone.)
+  if (document.querySelector('.site-header')) {
+    ScrollTrigger.create({
+      start: 30,
+      end: 'max',
+      toggleClass: { targets: '.site-header', className: 'is-scrolled' },
+    });
+  }
 
   if (quality.reducedMotion) return;
 
@@ -51,9 +54,28 @@ export function initDomAnimations(quality: QualityProfile): void {
   const splitWords = gsap.utils.toArray<HTMLElement>('.split-word');
   const heroFades = gsap.utils.toArray<HTMLElement>('[data-hero-fade]');
   if (splitWords.length || heroFades.length) {
-    const intro = gsap.timeline({ defaults: { ease: 'power4.out' } });
+    const intro = gsap.timeline({
+      defaults: { ease: 'power4.out' },
+      // The masks only need to clip during the rise; released after, they'd
+      // otherwise crop the hero copy's white halo into rectangles.
+      onComplete: () => {
+        document.querySelectorAll<HTMLElement>('.split-mask').forEach((m) => {
+          m.style.overflow = 'visible';
+        });
+      },
+    });
     if (splitWords.length) intro.from(splitWords, { yPercent: 120, duration: 1.1, stagger: 0.09 }, 0.15);
     if (heroFades.length) intro.from(heroFades, { y: 28, opacity: 0, duration: 1, stagger: 0.12 }, 0.45);
+  }
+
+  // --- scroll cue: gone almost immediately once scrolling starts ------------
+  const cue = document.querySelector<HTMLElement>('.scroll-cue');
+  if (cue) {
+    gsap.to(cue, {
+      opacity: 0,
+      ease: 'none',
+      scrollTrigger: { start: 10, end: 160, scrub: true },
+    });
   }
 
   // --- scroll-in reveals ----------------------------------------------------
@@ -68,14 +90,26 @@ export function initDomAnimations(quality: QualityProfile): void {
   });
 
   // --- slide-in cards (scrubbed) --------------------------------------------
-  // Each card starts fully off-screen right; later cards start farther out so
-  // they trail the first one, and all settle as the section reaches center.
+  // Each card rides a track in from off-screen right: it starts farther away
+  // (smaller and raised) and travels inward toward the left along a path
+  // tilted gently down-left, growing to full size as it arrives. Later cards
+  // start farther out so they trail the first one.
   gsap.utils.toArray<HTMLElement>('[data-slide-in]').forEach((el, i) => {
+    const startX = () => window.innerWidth * (1.05 + i * 0.3);
+    const trackSlope = 0.08; // drop per px of leftward travel — the gentle tilt
     gsap.fromTo(
       el,
-      { x: () => window.innerWidth * (1.05 + i * 0.3) },
+      {
+        x: startX,
+        y: () => -startX() * trackSlope,
+        scale: 0.55,
+        rotation: -4, // lean with the descending track, settling flat
+      },
       {
         x: 0,
+        y: 0,
+        scale: 1,
+        rotation: 0,
         ease: 'none',
         scrollTrigger: {
           trigger: el.closest('section') ?? el,
