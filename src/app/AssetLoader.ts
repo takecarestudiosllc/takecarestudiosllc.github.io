@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 /**
  * Central asset loading with a shared LoadingManager. Current scenes are fully
@@ -15,7 +16,10 @@ export type AssetRequest =
 export class AssetLoader {
   private manager = new THREE.LoadingManager();
   private textureLoader = new THREE.TextureLoader(this.manager);
-  private gltfLoader = new GLTFLoader(this.manager);
+  // Decoder files are copied from three/examples/jsm/libs/draco/gltf into
+  // public/draco/ so Draco-compressed GLBs (e.g. phone.glb) decode locally.
+  private dracoLoader = new DRACOLoader(this.manager).setDecoderPath('/draco/');
+  private gltfLoader = new GLTFLoader(this.manager).setDRACOLoader(this.dracoLoader);
 
   loadTexture(url: string): Promise<THREE.Texture> {
     return this.textureLoader.loadAsync(url);

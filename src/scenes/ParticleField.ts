@@ -15,6 +15,9 @@ export interface ParticleFieldOptions {
   parallax: number;
   /** Half-extents of the spawn box. */
   bounds: { x: number; y: number; zNear: number; zFar: number };
+  /** Defaults to additive (glowing motes on dark scenes); pass NormalBlending
+   *  for light backdrops where additive would wash out to invisible. */
+  blending?: THREE.Blending;
 }
 
 /**
@@ -65,7 +68,7 @@ export class ParticleField {
       uniforms: this.uniforms,
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: opts.blending ?? THREE.AdditiveBlending,
     });
 
     this.points = new THREE.Points(geometry, material);

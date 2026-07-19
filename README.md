@@ -1,6 +1,6 @@
-# ONEGOD DIGITAL — takecarestudiosllc.github.io
+# Take Care Studios — takecarestudiosllc.github.io
 
-Immersive WebGL marketing site for ONEGOD DIGITAL, the DBA of Take Care Studios LLC (Six Seven VR,
+Immersive WebGL marketing site for Take Care Studios LLC (Six Seven VR,
 Touch Grass! VR Simulator). Multi-page Vite app: every top-level `.html`
 file is a real page with its text in the DOM (SEO-friendly); Three.js renders
 a scroll-driven backdrop behind it.

@@ -4,6 +4,11 @@ import type { QualityProfile } from '../app/Quality';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// The mobile URL bar showing/hiding fires resize events mid-scroll; refreshing
+// on those makes scrubbed/pinned elements jump. Real size changes (rotation,
+// desktop window resize) still trigger a refresh.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 /**
  * All DOM-side motion, driven by data attributes so pages stay declarative:
  *   data-split      — hero heading, split into words and staggered upward

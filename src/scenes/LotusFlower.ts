@@ -150,9 +150,9 @@ export class LotusFlower {
     this.head.rotation.y = elapsed * 0.1; // slow ceremonial turn
 
     const flicker = 1 + Math.sin(elapsed * 2.3) * 0.05 + Math.sin(elapsed * 5.1) * 0.03;
-    this.light.intensity = glow * 6.5 * flicker;
+    this.light.intensity = glow * 3.25 * flicker;
     const spriteMat = this.sprite.material as THREE.SpriteMaterial;
-    spriteMat.opacity = glow * (0.9 - 0.35 * bloom); // glow softens as petals take over
+    spriteMat.opacity = glow * 0.5 * (0.9 - 0.35 * bloom); // glow softens as petals take over
     const s = (0.6 + glow * 2.6 + bloom * 1.2) * flicker;
     this.sprite.scale.setScalar(s);
   }

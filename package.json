@@ -1,9 +1,9 @@
 {
-  "name": "onegoddigital-site",
+  "name": "takecarestudios-site",
   "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "ONEGOD DIGITAL — immersive WebGL marketing site",
+  "description": "Take Care Studios LLC — immersive WebGL marketing site",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
