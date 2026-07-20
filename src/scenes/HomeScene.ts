@@ -8,6 +8,7 @@ import { StarField } from './StarField';
 import { VaporTrack, trackY } from './VaporTrack';
 import { toonGradient, addOutline } from './toon';
 import { LotusFlower, GLOW_TINT_BASE, GLOW_TINT_BLUE } from './LotusFlower';
+import { buildHeadset } from './HeadsetModel';
 import { InkGlobe, AURA_SCALE } from './InkGlobe';
 import { shaders } from '../shaders';
 
@@ -60,11 +61,11 @@ const HEADSET_HIDDEN_Y = 8;
 const HEADSET_X = 1.9;
 const HEADSET_REST_Y = -1.05;
 const SURFACE_Y = -2.05;
-/** Yaw that turns the headset body to the viewer's right (the mirror of the
- *  old left-facing pose: π − 2.1) while the face opening — the model's -x
- *  side, where the white lenses live — stays angled toward the camera so
- *  the lens content reads: opening normal ≈ (-0.5, 0, 0.86). */
-const HEADSET_REST_ROT = Math.PI - 2.1;
+/** Yaw that turns the headset body to the viewer's right while the wearer
+ *  side (local -z on the built model, where the lenses live) stays angled
+ *  toward the camera so the lens content reads:
+ *  opening normal = (-sinθ, 0, -cosθ) ≈ (-0.5, 0, 0.86). */
+const HEADSET_REST_ROT = Math.PI - 0.524;
 /** Moonbeam cone: from the moon down onto the landed headset. Silver-white,
  *  matching the moon's halo. */
 const BEAM_HEIGHT = 8.5;
@@ -448,10 +449,9 @@ export class HomeScene extends SceneBase {
   }
 
   private async loadModels(): Promise<void> {
-    const { phone, hand, headset, moonMap, lensMap } = await this.ctx.assets.loadAll({
+    const { phone, hand, moonMap, lensMap } = await this.ctx.assets.loadAll({
       phone: { url: '/models/phone.glb', type: 'gltf' },
       hand: { url: '/models/hand.glb', type: 'gltf' },
-      headset: { url: '/models/vr_headset.glb', type: 'gltf' },
       moonMap: { url: '/textures/moon_1024.jpg', type: 'texture' },
       lensMap: { url: '/textures/tgs1_1024.jpg', type: 'texture' },
     });
@@ -513,51 +513,16 @@ export class HomeScene extends SceneBase {
     handMeshes.forEach((m) => addOutline(m, 0.002));
     this.handModel.add(hand.scene);
 
-    // Beat 2 backdrop: gunmetal headset (same finish as the phone body) with
-    // bright white lenses, plus the site's black ink outlines so it still
-    // sits with the comic look on the white page. Normalized like the
-    // phone: recentered, longest axis to a fixed world size.
-    const vrBox = new THREE.Box3().setFromObject(headset.scene);
+    // Beat 2: procedurally built headset (see HeadsetModel.ts — no
+    // third-party asset, no license). Normalized like the phone:
+    // recentered, longest axis to a fixed world size.
+    const builtHeadset = buildHeadset(lensMap);
+    const vrBox = new THREE.Box3().setFromObject(builtHeadset);
     const vrSize = vrBox.getSize(new THREE.Vector3());
     const vrScale = (4.4 * this.sizeScale()) / Math.max(vrSize.x, vrSize.y, vrSize.z);
-    headset.scene.scale.setScalar(vrScale);
-    headset.scene.position.copy(vrBox.getCenter(new THREE.Vector3())).multiplyScalar(-vrScale);
-    // Double-sided: the face opening looks into the shell, so interior
-    // back-faces must render or the headset reads hollow/see-through.
-    // Less metallic than the phone so the moonbeam's spotlight can actually
-    // grade the top surfaces (pure metal has almost no diffuse response).
-    const vrBodyMat = new THREE.MeshStandardMaterial({
-      color: 0x2a2d33,
-      metalness: 0.6,
-      roughness: 0.42,
-      side: THREE.DoubleSide,
-    });
-    // The lenses show the Touch Grass key art, emissive so it glows like a
-    // lit display through the face opening regardless of scene lighting.
-    lensMap.colorSpace = THREE.SRGBColorSpace;
-    lensMap.flipY = false; // applied onto glTF UVs, which assume no flip
-    const vrLensMat = new THREE.MeshStandardMaterial({
-      color: 0x000000,
-      emissive: 0xffffff,
-      emissiveMap: lensMap,
-      emissiveIntensity: 1.1,
-      metalness: 0.1,
-      roughness: 0.25,
-      side: THREE.DoubleSide,
-    });
-    const vrMeshes: THREE.Mesh[] = [];
-    headset.scene.traverse((obj) => {
-      if (obj instanceof THREE.Mesh) {
-        // GLTFLoader splits primitives into one mesh each, keeping the
-        // authored material names ("Lens", "Headset_M", "Strap", …).
-        const name = (obj.material as THREE.Material).name;
-        obj.material = name === 'Lens' ? vrLensMat : vrBodyMat;
-        vrMeshes.push(obj);
-      }
-    });
-    // ~0.035 world units of ink, expressed in the meshes' object space.
-    vrMeshes.forEach((m) => addOutline(m, 0.035 / vrScale));
-    this.headsetModel.add(headset.scene);
+    builtHeadset.scale.setScalar(vrScale);
+    builtHeadset.position.copy(vrBox.getCenter(new THREE.Vector3())).multiplyScalar(-vrScale);
+    this.headsetModel.add(builtHeadset);
   }
 
   buildScrollTimeline(): void {

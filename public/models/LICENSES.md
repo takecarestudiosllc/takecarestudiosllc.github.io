@@ -5,10 +5,8 @@
   **License: CC BY 4.0** — commercial use OK, attribution required. Credit
   "timurkoba92" (e.g. in a site credits/colophon section) before launch.
   Generic unbranded handset — verified free of manufacturer logos/trade dress.
-- `vr_headset.glb` — "VR Headset" by J-Toastie (Poly Pizza), via
-  https://poly.pizza/m/raCB2tOkk3
-  **License: CC BY 3.0** — commercial use OK, attribution required. Credit
-  "J-Toastie" (e.g. in a site credits/colophon section) before launch.
+- VR headset — procedurally built in `src/scenes/HeadsetModel.ts` (no
+  third-party asset, no license or attribution needed).
 - `hand.glb` — "generic-hand" (right) from the W3C immersive-web
   `webxr-input-profiles` assets package. License: Apache-2.0.
 - `../textures/earth_day_2048.jpg` — NASA "Blue Marble: Land Surface, Shallow
