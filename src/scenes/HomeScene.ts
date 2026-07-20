@@ -61,11 +61,12 @@ const HEADSET_HIDDEN_Y = 8;
 const HEADSET_X = 1.9;
 const HEADSET_REST_Y = -1.05;
 const SURFACE_Y = -2.05;
-/** Yaw that turns the headset body to the viewer's right while the wearer
- *  side (local -z on the built model, where the lenses live) stays angled
- *  toward the camera so the lens content reads:
- *  opening normal = (-sinθ, 0, -cosθ) ≈ (-0.5, 0, 0.86). */
-const HEADSET_REST_ROT = Math.PI - 0.524;
+/** Yaw that turns the headset body slightly to the viewer's right while
+ *  the wearer side (local -z on the built model, where the lenses live)
+ *  faces the camera near-on — frontal enough that the back-strap connector
+ *  parallaxes into the gap between the lenses instead of onto one:
+ *  opening normal = (-sinθ, 0, -cosθ) ≈ (-0.29, 0, 0.96). */
+const HEADSET_REST_ROT = Math.PI - 0.29;
 /** Moonbeam cone: from the moon down onto the landed headset. Silver-white,
  *  matching the moon's halo. */
 const BEAM_HEIGHT = 8.5;
