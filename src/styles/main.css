@@ -612,6 +612,12 @@ body[data-page='zhong'] .section { padding-block: 9vh; }
   padding: 4rem clamp(1.25rem, 4vw, 3rem);
 }
 .hero--zhong .hero-title { max-width: none; }
+/* "Six Seven VR" stays on one line when it fits; when it doesn't, the nbsp
+   keeps "Six Seven" together so only "VR" drops to the next line. */
+body[data-theme='sixseven'] .hero-title { max-width: none; }
+/* No fixed header on this page, so drop the 7rem top reserved to clear one and
+   keep the padding symmetric — the hero centres instead of sitting low. */
+body[data-theme='sixseven'] .hero { padding-block: clamp(2rem, 5vh, 4rem); }
 /* Brush mark left, wordmark right. The logo can't live inside the <h1> — the
    data-split animation clears that element's contents. */
 .zhong-lockup {

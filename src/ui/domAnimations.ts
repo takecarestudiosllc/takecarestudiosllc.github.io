@@ -39,7 +39,9 @@ export function initDomAnimations(quality: QualityProfile): void {
     const text = (el.textContent ?? '').trim();
     el.setAttribute('aria-label', text);
     el.textContent = '';
-    text.split(/\s+/).forEach((word) => {
+    // Split on whitespace except U+00A0 — a non-breaking space keeps the words
+    // it joins inside a single mask, so they animate and wrap as one unit.
+    text.split(/[^\S\u00A0]+/).forEach((word) => {
       const mask = document.createElement('span');
       mask.className = 'split-mask';
       mask.setAttribute('aria-hidden', 'true');
