@@ -5,7 +5,11 @@ import { Backdrop } from './Backdrop';
 import { ParticleField } from './ParticleField';
 import { shaders } from '../shaders';
 
-const FIELD = { spreadX: 11, zNear: 7, zFar: -7 };
+// The field runs deep so the scrolled-up camera still sees grass at the horizon.
+// `spreadPerZ` widens each row as it recedes, roughly tracking the camera
+// frustum; `depthBias` (>1) pushes instances toward the near rows, so the far
+// field thins out instead of eating the blade budget.
+const FIELD = { spreadX: 11, spreadPerZ: 0.62, zNear: 7, zFar: -45, depthBias: 2 };
 
 /**
  * Touch Grass VR page: an instanced grass field swaying in the wind under a
@@ -34,7 +38,7 @@ export class TouchGrassScene extends SceneBase {
     this.scene.add(this.backdrop.mesh);
 
     this.scene.add(this.createGround());
-    this.scene.add(this.createGrass(Math.round(6500 * this.ctx.quality.density)));
+    this.scene.add(this.createGrass(Math.round(20000 * this.ctx.quality.density)));
 
     this.pollen = new ParticleField({
       count: Math.round(300 * this.ctx.quality.density),
@@ -59,7 +63,7 @@ export class TouchGrassScene extends SceneBase {
   /** Simple dark-green disc under the blades so gaps read as soil. */
   private createGround(): THREE.Mesh {
     const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(40, 24),
+      new THREE.CircleGeometry(90, 32),
       new THREE.MeshBasicMaterial({ color: 0x1d6c0c }),
     );
     ground.rotation.x = -Math.PI / 2;
@@ -87,9 +91,12 @@ export class TouchGrassScene extends SceneBase {
     const angles = new Float32Array(count);
     const seeds = new Float32Array(count);
     for (let i = 0; i < count; i++) {
-      offsets[i * 3 + 0] = (Math.random() * 2 - 1) * FIELD.spreadX;
+      const t = Math.random() ** FIELD.depthBias; // 0 = nearest row, 1 = horizon
+      const z = THREE.MathUtils.lerp(FIELD.zNear, FIELD.zFar, t);
+      const spread = FIELD.spreadX + (FIELD.zNear - z) * FIELD.spreadPerZ;
+      offsets[i * 3 + 0] = (Math.random() * 2 - 1) * spread;
       offsets[i * 3 + 1] = 0;
-      offsets[i * 3 + 2] = THREE.MathUtils.lerp(FIELD.zNear, FIELD.zFar, Math.random());
+      offsets[i * 3 + 2] = z;
       scales[i] = THREE.MathUtils.lerp(0.9, 1.9, Math.random());
       angles[i] = Math.random() * Math.PI * 2;
       seeds[i] = Math.random();
@@ -105,9 +112,10 @@ export class TouchGrassScene extends SceneBase {
       uBase: { value: new THREE.Color(0x155607) },
       uTip: { value: new THREE.Color(0x7fd42f) },
       uFog: { value: new THREE.Color(0x5cbc2a) }, // blends into the meadow horizon
-      // Fog starts past most of the field so near/mid blades keep contrast.
-      uFogNear: { value: 10 },
-      uFogFar: { value: 22 },
+      // Fog starts past the near rows so foreground blades keep contrast, and
+      // finishes short of the last row so the field dissolves into the horizon.
+      uFogNear: { value: 16 },
+      uFogFar: { value: 44 },
     };
     const material = new THREE.ShaderMaterial({
       vertexShader: shaders.grassVert,

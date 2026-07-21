@@ -135,12 +135,15 @@ html.lenis, html.lenis body { height: auto; }
   transition: color 0.25s ease;
 }
 .site-nav a:hover { color: var(--text); }
+/* Header with no brand mark — the lone nav sits centered instead of flush left. */
+.site-header--centered { justify-content: center; }
 
 /* Description copy reads in Roboto; the display font (Excluded) stays for
    headings, eyebrows, and UI text. */
 .hero-sub,
 .showcase-sub,
-.finale-sub {
+.finale-sub,
+.section-copy {
   font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -209,6 +212,14 @@ body[data-page='home'] .finale-title {
   color: var(--text-dim);
   text-wrap: balance;
 }
+/* Touch Grass leads with its transparent wordmark art instead of set type, so
+   the heading drops the type constraints. The theme's drop-shadow still applies
+   and follows the artwork's alpha — a box-shadow would halo the empty PNG box. */
+.hero-title-art {
+  max-width: none;
+  width: min(680px, 88vw);
+}
+.hero-title-art img { width: 100%; }
 .hero-brandmark { height: clamp(56px, 9vw, 96px); width: auto; margin-bottom: 1.6rem; filter: invert(1); }
 .hero-art {
   margin-top: 3rem;
@@ -277,6 +288,15 @@ body[data-page='home'] .finale-title {
 }
 .section-inner { padding: clamp(1.8rem, 4vw, 3.2rem); }
 .section-inner h2 { font-size: clamp(1.4rem, 3.4vw, 2rem); font-weight: 800; margin-bottom: 1.6rem; }
+.section-copy {
+  margin-top: 1.6rem;
+  margin-inline: auto;
+  max-width: 68ch;
+  text-align: center;
+  font-size: clamp(1rem, 1.6vw, 1.1rem);
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
 
 /* --- game cards (home) ------------------------------------------------------ */
 .game-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr)); }
@@ -390,6 +410,13 @@ body[data-page='home'] .finale-title {
 
 /* --- misc content --------------------------------------------------------------- */
 .chips { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.section-inner--centered {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  text-align: center;
+}
+.section-inner--centered .chips { justify-content: center; }
 .chip {
   padding: 0.45rem 1.1rem;
   border: 1px solid var(--line);
@@ -398,6 +425,8 @@ body[data-page='home'] .finale-title {
   font-weight: 600;
   color: var(--text-dim);
 }
+.chip--link { transition: color 0.25s ease, border-color 0.25s ease; }
+.chip--link:hover { color: var(--text); border-color: var(--accent); }
 .studio-note p { max-width: 62ch; color: var(--text-dim); font-size: 1.05rem; }
 
 /* --- footer ------------------------------------------------------------------- */
@@ -417,6 +446,7 @@ body[data-page='home'] .finale-title {
 .site-footer a { color: var(--text-dim); font-size: 0.92rem; transition: color 0.25s ease; }
 .site-footer a:hover { color: var(--text); }
 .site-footer .legal-note { color: var(--text-dim); font-size: 0.85rem; }
+.site-footer .legal-note a { font-size: inherit; }
 
 /* --- legal pages ---------------------------------------------------------------- */
 main.legal {
