@@ -5,7 +5,7 @@ import { initVideoEmbeds } from '../ui/videoEmbeds';
 
 /** Pages that have a WebGL scene registered in SceneManager. Others (legal
  *  pages) stay DOM-only and never download the Three.js chunk. */
-const WEBGL_PAGES = new Set(['home', 'sixseven', 'touchgrass']);
+const WEBGL_PAGES = new Set(['home', 'sixseven', 'touchgrass', 'zhong']);
 
 /**
  * Composition root. One App per page load (this is a multi-page site).

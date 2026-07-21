@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Zhong</title>
+	<meta name="description" content="Zhong — the Chinese character learning app for Android and iPhone. Explore 2,380 characters as a living node graph of radicals, components, and the words they build.">
+	<meta name="author" content="Take Care Studios LLC">
+	<meta name="keywords" content="Chinese, learn Chinese, hanzi, characters, HSK, radicals, mobile app, Zhong, Take Care Studios">
+	<meta name="robots" content="index, follow">
+	<meta property="og:title" content="Zhong">
+	<meta property="og:description" content="The Chinese character learning app for Android and iPhone.">
+	<meta property="og:type" content="website">
+	<link rel="icon" href="/images/icon.png">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+	<!-- Only the eleven hanzi the node graph draws — Google serves that exact
+	     subset, so the CJK face costs a couple of kilobytes instead of megabytes. -->
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&text=%E4%B8%AD%E4%B8%A8%E5%8F%A3%E5%9B%BD%E5%BF%83%E6%96%87%E5%8D%88%E5%AD%A6%E9%9B%86%E5%85%B6%E9%AB%98&display=swap" rel="stylesheet">
+	<script type="module" src="/src/main.ts"></script>
+</head>
+
+<body data-page="zhong" data-theme="zhong">
+	<main>
+		<!-- Hero: copy left, a static rendition of the app's node explorer right.
+		     The graph is plain DOM + SVG (no WebGL, no JS) so it paints instantly
+		     and still reads correctly with scripting off. -->
+		<section class="hero hero--zhong">
+			<div class="zhong-hero__copy">
+				<p class="hero-eyebrow" data-hero-fade>Take Care Studios LLC presents</p>
+				<div class="zhong-lockup">
+					<!-- the app's brush 中, filled from the page palette (see .zhong-logo) -->
+					<span class="zhong-logo" data-hero-fade aria-hidden="true"></span>
+					<h1 class="hero-title" data-split>Zhong</h1>
+				</div>
+				<p class="hero-sub" data-hero-fade>
+					The Chinese Character learning app for Android and iPhone.
+				</p>
+			</div>
+
+			<!-- Node graph for 中 (zhōng). This flat CSS version is the fallback and
+			     the layout slot: ZhongScene parks the rotating 3D constellation
+			     exactly over this box and then hides the markup below. Positions are
+			     percentages of the square container; everything else is themed in CSS. -->
+			<div class="node-graph" role="img"
+				aria-label="Node graph: the character 中 (zhōng, middle) at the centre, linked to its radicals 丨 and 口 and to the words 中国, 中心, 中文, 中午, 中学, 集中, 其中 and 高中, each of which links on to its other character.">
+				<svg class="node-graph__links" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+					<!-- centre → radicals -->
+					<line x1="50" y1="50" x2="68.94" y2="42.16"/>
+					<line x1="50" y1="50" x2="31.06" y2="57.84"/>
+					<!-- centre → words -->
+					<line x1="50" y1="50" x2="50.00" y2="23.00"/>
+					<line x1="50" y1="50" x2="69.09" y2="30.91"/>
+					<line x1="50" y1="50" x2="77.00" y2="50.00"/>
+					<line x1="50" y1="50" x2="69.09" y2="69.09"/>
+					<line x1="50" y1="50" x2="50.00" y2="77.00"/>
+					<line x1="50" y1="50" x2="30.91" y2="69.09"/>
+					<line x1="50" y1="50" x2="23.00" y2="50.00"/>
+					<line x1="50" y1="50" x2="30.91" y2="30.91"/>
+					<!-- words → their other character -->
+					<line x1="50.00" y1="23.00" x2="50.00" y2="9.00"/>
+					<line x1="69.09" y1="30.91" x2="78.99" y2="21.01"/>
+					<line x1="77.00" y1="50.00" x2="91.00" y2="50.00"/>
+					<line x1="69.09" y1="69.09" x2="78.99" y2="78.99"/>
+					<line x1="50.00" y1="77.00" x2="50.00" y2="91.00"/>
+					<line x1="30.91" y1="69.09" x2="21.01" y2="78.99"/>
+					<line x1="23.00" y1="50.00" x2="9.00" y2="50.00"/>
+					<line x1="30.91" y1="30.91" x2="21.01" y2="21.01"/>
+				</svg>
+
+				<!-- radicals (inner shell) -->
+				<span class="ngn ngn--radical" style="--x:68.94;--y:42.16" title="丨 gǔn — vertical stroke (radical 2)">丨</span>
+				<span class="ngn ngn--radical" style="--x:31.06;--y:57.84" title="口 kǒu — mouth (radical 30)">口</span>
+
+				<!-- words (orbit shell) -->
+				<span class="ngn ngn--word" style="--x:50.00;--y:23.00" title="中国 zhōngguó — China">中国</span>
+				<span class="ngn ngn--word" style="--x:69.09;--y:30.91" title="中心 zhōngxīn — centre; core">中心</span>
+				<span class="ngn ngn--word" style="--x:77.00;--y:50.00" title="中文 zhōngwén — the Chinese language">中文</span>
+				<span class="ngn ngn--word" style="--x:69.09;--y:69.09" title="中午 zhōngwǔ — noon">中午</span>
+				<span class="ngn ngn--word" style="--x:50.00;--y:77.00" title="中学 zhōngxué — middle school">中学</span>
+				<span class="ngn ngn--word" style="--x:30.91;--y:69.09" title="集中 jízhōng — to concentrate">集中</span>
+				<span class="ngn ngn--word" style="--x:23.00;--y:50.00" title="其中 qízhōng — among; therein">其中</span>
+				<span class="ngn ngn--word" style="--x:30.91;--y:30.91" title="高中 gāozhōng — senior high school">高中</span>
+
+				<!-- each word's other character (outer shell) -->
+				<span class="ngn ngn--char" style="--x:50.00;--y:9.00" title="国 guó — country">国</span>
+				<span class="ngn ngn--char" style="--x:78.99;--y:21.01" title="心 xīn — heart">心</span>
+				<span class="ngn ngn--char" style="--x:91.00;--y:50.00" title="文 wén — writing">文</span>
+				<span class="ngn ngn--char" style="--x:78.99;--y:78.99" title="午 wǔ — noon">午</span>
+				<span class="ngn ngn--char" style="--x:50.00;--y:91.00" title="学 xué — to study">学</span>
+				<span class="ngn ngn--char" style="--x:21.01;--y:78.99" title="集 jí — to gather">集</span>
+				<span class="ngn ngn--char" style="--x:9.00;--y:50.00" title="其 qí — its; that">其</span>
+				<span class="ngn ngn--char" style="--x:21.01;--y:21.01" title="高 gāo — tall; high">高</span>
+
+				<!-- centre, drawn last so its halo sits over every connector -->
+				<span class="ngn ngn--center" style="--x:50;--y:50" title="中 zhōng — middle; centre; within">中</span>
+			</div>
+		</section>
+
+		<!-- The app's own definition card, rebuilt in DOM: gold headword, jade
+		     pinyin, numbered senses in mono. -->
+		<section class="section" id="explorer" aria-labelledby="explorer-title">
+			<div class="zhong-split" data-reveal>
+				<div class="zhong-card">
+					<p class="zhong-card__head">学</p>
+					<p class="zhong-card__pinyin">xué</p>
+					<ol class="zhong-card__defs">
+						<li>to learn</li>
+						<li>to study</li>
+						<li>to imitate</li>
+					</ol>
+					<!-- 学 has five senses in one pinyin group; the panel pages three at a time -->
+					<p class="zhong-card__page">1 / 2</p>
+				</div>
+				<div class="zhong-split__copy">
+					<p class="hero-eyebrow">The Node Explorer</p>
+					<h2 class="section-title" id="explorer-title">Explore Chinese Visually</h2>
+					<p class="showcase-sub">
+						Learn Chinese easily by using Zhong to explore Chinese characters
+						visually &mdash; see how characters connect to create words, see the
+						components and radicals they&rsquo;re composed of, and the
+						relationships between them all.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- Quizzes. The card is the app's own forward question, rebuilt in DOM and
+		     frozen mid-answer: both choices picked, Check waiting. -->
+		<section class="section" id="quizzes" aria-labelledby="quiz-title">
+			<div class="zhong-split zhong-split--flip" data-reveal>
+				<div class="zhong-split__copy">
+					<p class="hero-eyebrow">Quizzes</p>
+					<h2 class="section-title" id="quiz-title">Test yourself</h2>
+					<p class="showcase-sub">
+						Recognizing a character is not the same as knowing it deeply. Zhong
+						quizzes you from all directions &mdash; study with spaced repetition
+						note cards and then test your knowledge of character recognition,
+						definition, and pronunciation.
+					</p>
+					<ul class="zhong-modes">
+						<li><b>Spaced repetition flash cards for studying</b></li>
+						<li><b>Character recognition</b></li>
+						<li><b>Definition and meaning</b></li>
+						<li><b>Pinyin and pronunciation</b></li>
+					</ul>
+				</div>
+
+				<div class="quiz-card" role="img"
+					aria-label="An example question from the app: the character 中 above two rows of multiple-choice answers — a pinyin row where zhōng is selected, and a meaning row where “within; among; in; middle; center” is selected — with a Check button beneath.">
+					<div class="quiz-card__bar">
+						<span>4 / 12</span>
+						<span class="quiz-card__exit">Exit</span>
+					</div>
+					<p class="quiz-card__glyph">中</p>
+					<p class="quiz-card__hint">Click to select both answers</p>
+
+					<p class="quiz-card__label">Pinyin</p>
+					<div class="quiz-card__row">
+						<span class="quiz-opt is-picked">zhōng</span>
+						<span class="quiz-opt">zhǒng</span>
+						<span class="quiz-opt">chóng</span>
+					</div>
+
+					<p class="quiz-card__label">Meaning</p>
+					<div class="quiz-card__row">
+						<span class="quiz-opt is-picked">within; among; in; middle; center &hellip;</span>
+						<span class="quiz-opt">heart; mind; intention &hellip;</span>
+						<span class="quiz-opt">language; culture; writing &hellip;</span>
+					</div>
+
+					<p class="quiz-card__check">Check</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="section" id="corpus" aria-labelledby="corpus-title">
+			<div class="glass section-inner section-inner--centered" data-reveal>
+				<h2 id="corpus-title">What is in the graph</h2>
+				<div class="zhong-stats">
+					<div><b>2,380</b><span>characters</span></div>
+					<div><b>6,581</b><span>words</span></div>
+					<div><b>214</b><span>radicals</span></div>
+					<div><b>HSK 1&ndash;6</b><span>graded lists</span></div>
+				</div>
+				<p class="section-copy">
+					Zhong contains a character and vocabulary database of the most commonly
+					used characters in the Chinese language, all radicals, and HSK level
+					1&ndash;6 vocabulary. All characters can be viewed as Simplified or
+					Traditional characters.
+				</p>
+			</div>
+		</section>
+
+		<section class="section" id="platforms" aria-labelledby="platforms-zhong">
+			<div class="glass section-inner section-inner--centered" data-reveal>
+				<h2 id="platforms-zhong">Coming soon to</h2>
+				<div class="chips">
+					<span class="chip">Android</span>
+					<span class="chip">iPhone</span>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<nav aria-label="Footer">
+			<a href="/zhongprivacypolicy.html">Privacy Policy</a>
+			<a href="/zhongtermsofservice.html">Terms of Service</a>
+		</nav>
+		<p class="legal-note"><a href="/index.html">&copy; 2026 Take Care Studios LLC</a></p>
+	</footer>
+</body>
+</html>

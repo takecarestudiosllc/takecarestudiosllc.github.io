@@ -25,6 +25,9 @@ export class Backdrop {
     /** Extra shader-specific uniforms (e.g. paper.frag's uClouds). Shared by
      *  reference, so the caller can keep tweening the objects it passed. */
     extra: Record<string, THREE.IUniform<number | THREE.Vector2>> = {},
+    /** Opaque page background by default. Overlays (a grid, a flame) pass
+     *  `transparent` so their alpha counts, and usually an additive blend. */
+    options: { transparent?: boolean; blending?: THREE.Blending } = {},
   ) {
     this.uniforms = {
       uTime: { value: 0 },
@@ -41,6 +44,8 @@ export class Backdrop {
       uniforms: { ...this.uniforms, ...extra },
       depthTest: false,
       depthWrite: false,
+      transparent: options.transparent ?? false,
+      blending: options.blending ?? THREE.NormalBlending,
     });
     this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
     this.mesh.frustumCulled = false;

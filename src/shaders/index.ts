@@ -15,6 +15,10 @@ import starsVert from './stars.vert?raw';
 import starsFrag from './stars.frag?raw';
 import grassVert from './grass.vert?raw';
 import grassFrag from './grass.frag?raw';
+import gemVert from './gem.vert?raw';
+import gemFrag from './gem.frag?raw';
+import gridFrag from './grid.frag?raw';
+import jadeWaterFrag from './jadewater.frag?raw';
 
 export const shaders = {
   backdropVert,
@@ -28,4 +32,9 @@ export const shaders = {
   starsFrag: chroma + starsFrag,
   grassVert,
   grassFrag,
+  gemVert,
+  gemFrag,
+  gridFrag,
+  // needs the noise chunk only for hash21, which seeds the bubbles
+  jadeWaterFrag: noise + jadeWaterFrag,
 } as const;

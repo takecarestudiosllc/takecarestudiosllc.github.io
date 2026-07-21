@@ -9,17 +9,22 @@ export default defineConfig({
   base: '/',
   build: {
     target: 'es2020',
-    // The lazily-loaded Three.js chunk is legitimately ~600 kB minified.
-    chunkSizeWarningLimit: 700,
+    // The lazily-loaded Three.js chunk is legitimately ~720 kB minified
+    // (core, the GLTF/Draco loaders, and the fat-line classes the Zhong
+    // node graph draws its connectors with).
+    chunkSizeWarningLimit: 780,
     rollupOptions: {
       input: {
         home: page('index'),
         sixsevenvr: page('sixsevenvr'),
         tgsvr: page('tgsvr'),
+        zhong: page('zhong'),
         sixsevenprivacy: page('sixsevenprivacypolicy'),
         sixseventerms: page('sixseventermsofservice'),
         tgsvrprivacy: page('tgsvrprivacypolicy'),
         tgsvrterms: page('tgsvrtermsofservice'),
+        zhongprivacy: page('zhongprivacypolicy'),
+        zhongterms: page('zhongtermsofservice'),
       },
     },
   },
