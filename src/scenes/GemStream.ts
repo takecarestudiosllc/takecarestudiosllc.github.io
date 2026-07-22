@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { shaders } from '../shaders';
 
 /**
- * The app's jade reward gems, drifting up across the quiz section.
+ * The app's jade reward gems, drifting up across the middle of the page.
  *
  * The app draws them flat, as an SVG kite with a paler crown facet, a white
  * highlight and a sparkle that fires once every three seconds. Here they are

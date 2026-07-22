@@ -98,7 +98,7 @@ export class ZhongScene extends SceneBase {
     });
     this.scene.add(this.near.points);
 
-    // Reward gems streaming up across the quiz section.
+    // Reward gems streaming up across the middle of the page.
     const narrow = window.innerWidth < 640;
     this.gems = new GemStream(
       Math.max(7, Math.round((narrow ? 12 : 20) * this.ctx.quality.density)),
@@ -189,7 +189,35 @@ export class ZhongScene extends SceneBase {
       });
     }
 
-    this.whileVisible('#quizzes', this.view, 'gems');
+    // The gems span far more than their own section: they start rising halfway
+    // down the explorer, are fully up before the quizzes arrive, hold through
+    // them, and only finish draining away halfway down the corpus. Hence the
+    // explicit ranges rather than whileVisible's section-shaped window.
+    gsap.fromTo(
+      this.view,
+      { gems: 0 },
+      {
+        gems: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#explorer',
+          start: 'center center',
+          end: 'bottom 55%',
+          scrub: this.ctx.scrub,
+        },
+      },
+    );
+    gsap.to(this.view, {
+      gems: 0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '#corpus',
+        start: 'top 60%',
+        end: 'center center',
+        scrub: this.ctx.scrub,
+      },
+    });
+
     this.whileVisible('#corpus', this.gridOpacity, 'value');
     this.whileVisible('#platforms', this.waterOpacity, 'value');
   }
