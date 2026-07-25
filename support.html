@@ -24,15 +24,12 @@
 		     section on zhong.html, with the form dropped in beneath. -->
 		<section class="section" aria-labelledby="support-title">
 			<div class="glass section-inner support-card" data-reveal>
-				<!-- Wordmark, then the app's brush 中 (filled from the page palette —
-				     see .zhong-logo) with the page title laid over it. Both parts of
-				     the mark link back to the product page: this page has no header
-				     bar to carry that link. The second anchor is hidden from
-				     assistive tech so the pair reads as one link, not two. -->
+				<!-- The app's brush 中 (filled from the page palette — see .zhong-logo)
+				     with the page title laid over it. The mark is also the link back
+				     to the product page: this page has no header bar to carry one. -->
 				<div class="support-lockup">
-					<a class="support-lockup__name" href="/zhong.html">Zhong</a>
-					<a class="support-lockup__mark" href="/zhong.html" tabindex="-1" aria-hidden="true">
-						<span class="zhong-logo"></span>
+					<a class="support-lockup__mark" href="/zhong.html" aria-label="Zhong">
+						<span class="zhong-logo" aria-hidden="true"></span>
 					</a>
 					<h1 class="section-title support-lockup__title" id="support-title">Support</h1>
 				</div>
@@ -121,6 +118,9 @@
 
 	<footer class="site-footer">
 		<nav aria-label="Footer">
+			<!-- the policy pages carry this link in their header; here it lives in
+			     the footer, since the page has no header bar -->
+			<a href="/zhong.html">Zhong</a>
 			<a href="/zhongprivacypolicy.html">Privacy Policy</a>
 			<a href="/zhongtermsofservice.html">Terms of Service</a>
 			<a href="/support.html">Support</a>

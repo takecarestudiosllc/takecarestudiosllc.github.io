@@ -831,32 +831,18 @@ body[data-page='support'] .section:last-of-type { padding-bottom: 12vh; }
 .support-card { text-align: center; }
 .support-card .section-title { margin-bottom: 0; }
 
-/* Wordmark on row 1; the brush mark and the page title share row 2, so the
-   title reads as set over the mark. The cell is as wide as the title, which
-   centres the (narrower) mark behind it. */
+/* The brush mark and the page title share one grid cell, so the title reads as
+   set over the mark. The cell is as wide as the title, which centres the
+   narrower mark behind it. */
 .support-lockup {
   display: grid;
-  grid-template-columns: auto;
   justify-items: center;
-  gap: 0.9rem;
   width: fit-content;
-  margin: 0 auto 1.8rem;
+  margin: 0 auto 1.7rem;
 }
-.support-lockup__name {
-  grid-area: 1 / 1;
-  /* the trailing letter-space would push the centred word off-axis */
-  text-indent: 0.28em;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--accent);
-  transition: color 0.25s ease;
-}
-.support-lockup__name:hover { color: var(--text); }
-.support-lockup__mark { grid-area: 2 / 1; display: grid; }
+.support-lockup__mark { grid-area: 1 / 1; display: grid; }
 .support-lockup__title {
-  grid-area: 2 / 1;
+  grid-area: 1 / 1;
   place-self: center;
   /* the mark underneath stays the link — clicks pass straight through */
   pointer-events: none;
