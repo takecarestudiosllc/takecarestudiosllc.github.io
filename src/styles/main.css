@@ -104,6 +104,14 @@ body[data-page='zhong'] {
     #000;
   background-attachment: fixed;
 }
+/* Support borrows Zhong's black, with the bloom moved up top-centre — there is
+   no node graph off to the right for it to sit behind here. */
+body[data-page='support'] {
+  background:
+    radial-gradient(72% 46% at 50% 0%, rgba(30, 155, 110, 0.15) 0%, transparent 72%),
+    #000;
+  background-attachment: fixed;
+}
 
 ::selection { background: var(--accent); color: #0a0a0d; }
 a { color: var(--text); text-decoration: none; }
@@ -165,7 +173,10 @@ html.lenis, html.lenis body { height: auto; }
 .hero-sub,
 .showcase-sub,
 .finale-sub,
-.section-copy {
+.section-copy,
+.support-note,
+.support-status,
+.faq-item p {
   font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -807,6 +818,219 @@ body[data-theme='zhong'] .hero-title {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--text-dim);
+}
+
+/* --- support page -------------------------------------------------------
+   Zhong's card language with none of its marketing beats: a single column of
+   glass panels, sized for reading rather than for a hero. Like zhong.html it
+   runs without a header — the lockup inside the first panel is the way back. */
+body[data-page='support'] main { padding-top: max(7vh, 3.5rem); }
+body[data-page='support'] .section { padding-block: 4vh; max-width: 880px; }
+body[data-page='support'] .section:last-of-type { padding-bottom: 12vh; }
+
+.support-card { text-align: center; }
+.support-card .section-title { margin-bottom: 0; }
+
+/* Wordmark on row 1; the brush mark and the page title share row 2, so the
+   title reads as set over the mark. The cell is as wide as the title, which
+   centres the (narrower) mark behind it. */
+.support-lockup {
+  display: grid;
+  grid-template-columns: auto;
+  justify-items: center;
+  gap: 0.9rem;
+  width: fit-content;
+  margin: 0 auto 1.8rem;
+}
+.support-lockup__name {
+  grid-area: 1 / 1;
+  /* the trailing letter-space would push the centred word off-axis */
+  text-indent: 0.28em;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color 0.25s ease;
+}
+.support-lockup__name:hover { color: var(--text); }
+.support-lockup__mark { grid-area: 2 / 1; display: grid; }
+.support-lockup__title {
+  grid-area: 2 / 1;
+  place-self: center;
+  /* the mark underneath stays the link — clicks pass straight through */
+  pointer-events: none;
+  /* dark halo, not the theme's jade one: the title has to hold its own over
+     the strokes of the glyph behind it */
+  text-shadow: 0 0 14px rgba(0, 0, 0, 0.9), 0 0 34px rgba(0, 0, 0, 0.75), 0 0 46px rgba(30, 155, 110, 0.35);
+}
+/* As a plate behind the title the mark reads jade and dimmed, not white — a
+   full-strength mark and white type on top of it cancel each other out. */
+.support-lockup .zhong-logo {
+  width: clamp(5.4rem, 13vw, 8.5rem);
+  opacity: 0.5;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+.support-lockup .zhong-logo::before { background: var(--accent); }
+.support-lockup__mark:hover .zhong-logo {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 26px rgba(30, 155, 110, 0.8));
+}
+
+/* Contact routes: the corpus figures from zhong.html — value over a small
+   uppercase caption — stacked full width. The address needs the whole card;
+   in a narrower column the display face hyphenates it into nonsense. */
+.support-routes {
+  display: grid;
+  gap: 1.4rem;
+  margin-top: 2.4rem;
+}
+.support-routes div { display: grid; gap: 0.3rem; align-content: start; }
+.support-routes b {
+  font-size: clamp(0.95rem, 1.9vw, 1.1rem);
+  font-weight: 800;
+  color: var(--accent);
+}
+/* Roboto, not the display face — an address is read character by character. */
+.support-routes__address b {
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+.support-routes a { color: inherit; }
+.support-routes a:hover { text-decoration: underline; }
+.support-routes span {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* The fields follow the app's quiz panel: dark wells, jade hairlines, the
+   labels in the same small uppercase the app uses over its answer rows. */
+.support-form {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 2.6rem;
+  padding-top: 2.2rem;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+.support-form__row {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+.support-field { display: grid; gap: 0.5rem; }
+.support-field > span {
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #4a7060;
+}
+.support-field input,
+.support-field textarea {
+  width: 100%;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid rgba(36, 150, 108, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+.support-field textarea { min-height: 9rem; resize: vertical; }
+.support-field ::placeholder { color: rgba(144, 212, 184, 0.32); }
+/* Border only — the global :focus-visible outline still draws the focus ring. */
+.support-field input:focus,
+.support-field textarea:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: rgba(36, 150, 108, 0.07);
+}
+.support-submit {
+  justify-self: center;
+  margin-top: 0.4rem;
+  padding: 0.7rem 1.7rem;
+  border: 1px solid rgba(36, 150, 108, 0.45);
+  border-radius: 10px;
+  background: rgba(36, 150, 108, 0.18);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #90d4b8;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.support-submit:hover { background: rgba(36, 150, 108, 0.3); border-color: var(--accent); color: var(--text); }
+/* The fields stay left-aligned; the send button and its footnote centre under
+   them so the form closes on the card's axis. */
+.support-note {
+  justify-self: center;
+  max-width: 62ch;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.support-note a { color: var(--accent); }
+.support-note a:hover { text-decoration: underline; }
+/* Filled in by contactForm.ts once the mail client has been handed the draft. */
+.support-status { justify-self: center; text-align: center; font-size: 0.85rem; color: var(--accent); }
+.support-status:empty { display: none; }
+
+/* --- FAQ ------------------------------------------------------------------ */
+.faq { display: grid; gap: 0.8rem; margin-top: 1.8rem; text-align: left; }
+.faq-item {
+  padding: 0 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.25s ease;
+}
+.faq-item[open], .faq-item:hover { border-color: color-mix(in srgb, var(--accent) 32%, transparent); }
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  padding: 1.05rem 0;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+/* A plus that becomes an x — cheaper than an icon and it inherits the accent. */
+.faq-item summary::after {
+  content: '+';
+  flex: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--accent);
+  transition: rotate 0.25s ease;
+}
+.faq-item[open] summary::after { rotate: 45deg; }
+.faq-item p {
+  padding-bottom: 1.15rem;
+  max-width: 68ch;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+.faq-item p a { color: var(--accent); }
+.faq-item p a:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  body[data-page='support'] .section { padding-inline: 1rem; }
+  .support-routes { gap: 1.1rem; }
+  .support-form { margin-top: 2rem; padding-top: 1.8rem; }
+  .support-submit { justify-self: stretch; }
+  .faq-item summary { font-size: 0.94rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq-item summary::after { transition: none; }
 }
 
 @media (max-width: 900px) {

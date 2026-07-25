@@ -2,10 +2,11 @@ import { detectQuality, supportsWebGL } from './Quality';
 import { ScrollController } from './ScrollController';
 import { initDomAnimations } from '../ui/domAnimations';
 import { initVideoEmbeds } from '../ui/videoEmbeds';
+import { initContactForms } from '../ui/contactForm';
 
 /** Pages that have a WebGL scene registered in SceneManager. Others (legal
  *  pages) stay DOM-only and never download the Three.js chunk. */
-const WEBGL_PAGES = new Set(['home', 'sixseven', 'touchgrass', 'zhong']);
+const WEBGL_PAGES = new Set(['home', 'sixseven', 'touchgrass', 'zhong', 'support']);
 
 /**
  * Composition root. One App per page load (this is a multi-page site).
@@ -20,6 +21,7 @@ export class App {
 
     initDomAnimations(quality);
     initVideoEmbeds();
+    initContactForms();
 
     if (WEBGL_PAGES.has(page) && supportsWebGL()) {
       // Dynamic import keeps Three.js out of the shared bundle.

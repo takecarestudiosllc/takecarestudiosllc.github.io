@@ -3,6 +3,7 @@ import { HomeScene } from '../scenes/HomeScene';
 import { SixSevenScene } from '../scenes/SixSevenScene';
 import { TouchGrassScene } from '../scenes/TouchGrassScene';
 import { ZhongScene } from '../scenes/ZhongScene';
+import { SupportScene } from '../scenes/SupportScene';
 
 type SceneFactory = (ctx: SceneContext) => SceneBase;
 
@@ -19,6 +20,7 @@ const registry: Record<string, SceneFactory> = {
   sixseven: (ctx) => new SixSevenScene(ctx),
   touchgrass: (ctx) => new TouchGrassScene(ctx),
   zhong: (ctx) => new ZhongScene(ctx),
+  support: (ctx) => new SupportScene(ctx),
 };
 
 export function createSceneForPage(page: string, ctx: SceneContext): SceneBase | null {

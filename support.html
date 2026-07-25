@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Zhong Support</title>
+	<meta name="description" content="Support for Zhong, the Chinese character learning app by Take Care Studios LLC — contact form, support email, and answers to common questions.">
+	<meta name="author" content="Take Care Studios LLC">
+	<meta name="keywords" content="Zhong, support, help, contact, FAQ, Chinese, learning app, Take Care Studios">
+	<meta name="robots" content="index, follow">
+	<meta property="og:title" content="Zhong Support">
+	<meta property="og:description" content="Get help with Zhong — contact Take Care Studios LLC.">
+	<meta property="og:type" content="website">
+	<link rel="icon" href="/images/zhong-favicon.png">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100..900&display=swap" rel="stylesheet">
+	<script type="module" src="/src/main.ts"></script>
+</head>
+
+<body data-page="support" data-theme="zhong">
+	<main>
+		<!-- Contact. Same glass card + figure grid as the "What is in the graph"
+		     section on zhong.html, with the form dropped in beneath. -->
+		<section class="section" aria-labelledby="support-title">
+			<div class="glass section-inner support-card" data-reveal>
+				<!-- Wordmark, then the app's brush 中 (filled from the page palette —
+				     see .zhong-logo) with the page title laid over it. Both parts of
+				     the mark link back to the product page: this page has no header
+				     bar to carry that link. The second anchor is hidden from
+				     assistive tech so the pair reads as one link, not two. -->
+				<div class="support-lockup">
+					<a class="support-lockup__name" href="/zhong.html">Zhong</a>
+					<a class="support-lockup__mark" href="/zhong.html" tabindex="-1" aria-hidden="true">
+						<span class="zhong-logo"></span>
+					</a>
+					<h1 class="section-title support-lockup__title" id="support-title">Support</h1>
+				</div>
+				<p class="section-copy">
+					Found a bug, lost your progress, or want a character added to the
+					graph? Let me know here!
+				</p>
+
+				<div class="support-routes">
+					<div class="support-routes__address">
+						<b><a href="mailto:contact@takecarestudiosllc.com">contact@takecarestudiosllc.com</a></b>
+						<span>Support email</span>
+					</div>
+				</div>
+
+				<!-- This site is static, so there is no endpoint to POST to: the form
+				     hands the message to the visitor's own mail client. contactForm.ts
+				     builds the mailto: URL; the action below is the no-JS fallback. -->
+				<form class="support-form" id="contact"
+					data-mailto="contact@takecarestudiosllc.com"
+					action="mailto:contact@takecarestudiosllc.com"
+					method="post" enctype="text/plain">
+					<div class="support-form__row">
+						<label class="support-field">
+							<span>Your name</span>
+							<input type="text" name="name" autocomplete="name" placeholder="Jane Doe" required>
+						</label>
+						<label class="support-field">
+							<span>Your email</span>
+							<input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+						</label>
+					</div>
+					<label class="support-field">
+						<span>Subject</span>
+						<input type="text" name="subject" placeholder="What is this about?" required>
+					</label>
+					<label class="support-field">
+						<span>Message</span>
+						<textarea name="message" rows="7" placeholder="Tell us what happened, and which device you are on." required></textarea>
+					</label>
+					<button class="support-submit" type="submit">Send message</button>
+					<p class="support-note">
+						This opens your own email app with the message ready to send to
+						<a href="mailto:contact@takecarestudiosllc.com">contact@takecarestudiosllc.com</a>.
+						If nothing opens, email us directly at that address.
+					</p>
+					<p class="support-status" role="status" aria-live="polite"></p>
+				</form>
+			</div>
+		</section>
+
+		<section class="section" aria-labelledby="faq-title">
+			<div class="glass section-inner support-card" data-reveal>
+				<h2 id="faq-title">FAQs</h2>
+
+				<div class="faq">
+					<details class="faq-item">
+						<summary>Where can I get Zhong?</summary>
+						<p>
+							Zhong is out now on the Google Play Store for Android and the App
+							Store for iPhone &mdash; search for &ldquo;Zhong&rdquo; by Take Care
+							Studios LLC.
+						</p>
+					</details>
+					<details class="faq-item">
+						<summary>Does Zhong need an internet connection?</summary>
+						<p>
+							No. The character and vocabulary database ships inside the app, so
+							the node explorer and every quiz mode work offline. Your progress
+							stays on your device &mdash; see the
+							<a href="/zhongprivacypolicy.html">Privacy Policy</a> for the details.
+						</p>
+					</details>
+					<details class="faq-item">
+						<summary>Can I study Traditional characters instead of Simplified?</summary>
+						<p>
+							Yes. Every one of the 2,380 characters can be displayed as either
+							Simplified or Traditional, and you can switch between them at any
+							time.
+						</p>
+					</details>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<nav aria-label="Footer">
+			<a href="/zhongprivacypolicy.html">Privacy Policy</a>
+			<a href="/zhongtermsofservice.html">Terms of Service</a>
+			<a href="/support.html">Support</a>
+		</nav>
+		<p class="legal-note"><a href="/index.html">&copy; 2026 Take Care Studios LLC</a></p>
+	</footer>
+</body>
+</html>

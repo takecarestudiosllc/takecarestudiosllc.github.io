@@ -19,6 +19,7 @@ export default defineConfig({
         sixsevenvr: page('sixsevenvr'),
         tgsvr: page('tgsvr'),
         zhong: page('zhong'),
+        support: page('support'),
         sixsevenprivacy: page('sixsevenprivacypolicy'),
         sixseventerms: page('sixseventermsofservice'),
         tgsvrprivacy: page('tgsvrprivacypolicy'),
