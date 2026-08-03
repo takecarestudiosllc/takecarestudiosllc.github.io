@@ -7,6 +7,9 @@ const page = (name: string) => fileURLToPath(new URL(`./${name}.html`, import.me
 
 export default defineConfig({
   base: '/',
+  server: {
+    port: 5199,
+  },
   build: {
     target: 'es2020',
     // The lazily-loaded Three.js chunk is legitimately ~720 kB minified

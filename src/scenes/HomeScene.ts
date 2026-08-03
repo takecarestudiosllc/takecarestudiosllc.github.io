@@ -60,7 +60,10 @@ const HEADSET_HIDDEN_Y = 8;
  *  touches the surface line. */
 const HEADSET_X = 1.9;
 const HEADSET_REST_Y = -1.05;
-const SURFACE_Y = -2.05;
+/** Ground line for the landing kit (grass, pool, base plate, beam target).
+ *  Sits below HEADSET_REST_Y by a bit more than the headset's half-height
+ *  so the landed headset rests ON the grass instead of sinking into it. */
+const SURFACE_Y = -2.35;
 /** Yaw that turns the headset body slightly to the viewer's right while
  *  the wearer side (local -z on the built model, where the lenses live)
  *  faces the camera near-on — frontal enough that the back-strap connector
@@ -89,8 +92,10 @@ const HAND_SCALE = 21;
  *  Scales with HAND_SCALE — the palm's wrapper-space position moves linearly
  *  with the model scale, so double the hand means double this offset.
  *  y holds the lotus at its pre-raise height: when HAND_RAISED_Y moved up
- *  0.3 (-0.2 → 0.1), this dropped 0.3 to compensate (0.14 → -0.16). */
-const PALM_OFFSET = new THREE.Vector3(0, -0.16, 1.5);
+ *  0.3 (-0.2 → 0.1), this dropped 0.3 to compensate (0.14 → -0.16); then
+ *  lifted 0.22 total so the fully-open outer petals (which fold down well
+ *  past the flower base) clear the fingers instead of cutting into them. */
+const PALM_OFFSET = new THREE.Vector3(0, 0.06, 1.5);
 /** Lean the bloom toward the camera so its glowing heart reads, not just
  *  the petal rim (camera sits above and in front of the flower). */
 const LOTUS_TILT = 1.05;
@@ -213,6 +218,7 @@ export class HomeScene extends SceneBase {
     const sz = this.sizeScale();
     this.headset.position.set(anchorX, HEADSET_HIDDEN_Y, HEADSET_Z);
     this.headset.rotation.y = HEADSET_REST_ROT;
+    this.headsetModel.scale.setScalar(sz);
     this.headset.add(this.headsetModel);
     this.scene.add(this.headset);
 
@@ -357,6 +363,7 @@ export class HomeScene extends SceneBase {
 
     // --- beat 3: the crossing model (starts parked off-screen right) --------
     this.phone.position.set(this.offscreenX(), -0.35, PHONE_Z);
+    this.phoneModel.scale.setScalar(sz);
     this.phone.add(this.phoneModel);
     this.scene.add(this.phone);
 
@@ -368,14 +375,18 @@ export class HomeScene extends SceneBase {
     this.scene.add(this.vapor.group);
 
     // --- beat 4: hand + lotus (starts parked below the frustum) -------------
+    // The narrow-screen trim lives on the wrapper groups (here and on
+    // phoneModel/headsetModel above) so resize() can retarget it live;
+    // everything inside is authored at full size.
     this.hand.position.set(0, HAND_HIDDEN_Y, HAND_Z);
+    this.hand.scale.setScalar(sz);
     this.handModel.rotation.copy(HAND_ROTATION);
-    this.handModel.scale.setScalar(HAND_SCALE * sz);
+    this.handModel.scale.setScalar(HAND_SCALE);
     this.hand.add(this.handModel);
     this.lotus = new LotusFlower();
-    this.lotus.group.position.copy(PALM_OFFSET).multiplyScalar(sz);
+    this.lotus.group.position.copy(PALM_OFFSET);
     this.lotus.group.rotation.x = LOTUS_TILT;
-    this.lotus.group.scale.setScalar(1.4 * sz); // 1.08 + another 30%
+    this.lotus.group.scale.setScalar(1.4); // 1.08 + another 30%
     this.hand.add(this.lotus.group);
     this.scene.add(this.hand);
 
@@ -393,9 +404,10 @@ export class HomeScene extends SceneBase {
     return Math.min(1, this.ctx.rig.camera.aspect / 1.6);
   }
 
-  /** Model size trim for narrow screens (applied once at init — a mobile
-   *  orientation change reloads layout via ScrollTrigger refresh, but baked
-   *  geometry keeps this scale). */
+  /** Model size trim for narrow screens. Applied to the model wrapper
+   *  groups and re-applied on resize(), so a window that loads narrow and
+   *  then widens recovers full-size models. Ground scatter (pool, base,
+   *  grass) bakes the init-time value into its geometry and stays put. */
   private sizeScale(): number {
     return THREE.MathUtils.clamp(this.ctx.rig.camera.aspect / 1.6, 0.55, 1);
   }
@@ -450,11 +462,12 @@ export class HomeScene extends SceneBase {
   }
 
   private async loadModels(): Promise<void> {
-    const { phone, hand, moonMap, lensMap } = await this.ctx.assets.loadAll({
+    const { phone, hand, moonMap, lensMap, screenMap } = await this.ctx.assets.loadAll({
       phone: { url: '/models/phone.glb', type: 'gltf' },
       hand: { url: '/models/hand.glb', type: 'gltf' },
       moonMap: { url: '/textures/moon_1024.jpg', type: 'texture' },
       lensMap: { url: '/textures/tgs1_1024.jpg', type: 'texture' },
+      screenMap: { url: '/textures/phoness.png', type: 'texture' },
     });
 
     // Moon floating right of the hero copy, in natural grayscale (bright
@@ -477,7 +490,7 @@ export class HomeScene extends SceneBase {
     // to a fixed world height so a replacement GLB drops in unchanged.
     const box = new THREE.Box3().setFromObject(phone.scene);
     const size = box.getSize(new THREE.Vector3());
-    const scale = (2.2 * this.sizeScale()) / Math.max(size.x, size.y, size.z);
+    const scale = 2.2 / Math.max(size.x, size.y, size.z);
     phone.scene.scale.setScalar(scale);
     phone.scene.position.copy(box.getCenter(new THREE.Vector3())).multiplyScalar(-scale);
     // Re-skin the asset: gunmetal gray everywhere, screen face included.
@@ -490,6 +503,27 @@ export class HomeScene extends SceneBase {
       if (obj instanceof THREE.Mesh) obj.material = bodyMat;
     });
     this.phoneModel.add(phone.scene);
+
+    // App screenshot on the screen face: a plane in the image's 1080×1920
+    // aspect, fit inside the phone's front face and floated a hair off it
+    // so it can't z-fight the body. Unlit + untonemapped so the screenshot
+    // reads as a lit screen, pixel-for-pixel.
+    screenMap.colorSpace = THREE.NoColorSpace;
+    const screenAspect = 1080 / 1920;
+    const faceW = size.x * scale;
+    const faceH = size.y * scale;
+    let screenH = faceH * 0.96;
+    let screenW = screenH * screenAspect;
+    if (screenW > faceW * 0.96) {
+      screenW = faceW * 0.96;
+      screenH = screenW / screenAspect;
+    }
+    const screenPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(screenW, screenH),
+      new THREE.MeshBasicMaterial({ map: screenMap, toneMapped: false }),
+    );
+    screenPlane.position.z = (size.z * scale) / 2 + 0.012;
+    this.phoneModel.add(screenPlane);
 
     // Comic-book override: white cel-shaded hand with a black ink outline
     // hull per mesh — the palm light still shades the cel bands when it
@@ -520,7 +554,7 @@ export class HomeScene extends SceneBase {
     const builtHeadset = buildHeadset(lensMap);
     const vrBox = new THREE.Box3().setFromObject(builtHeadset);
     const vrSize = vrBox.getSize(new THREE.Vector3());
-    const vrScale = (4.4 * this.sizeScale()) / Math.max(vrSize.x, vrSize.y, vrSize.z);
+    const vrScale = 4.4 / Math.max(vrSize.x, vrSize.y, vrSize.z);
     builtHeadset.scale.setScalar(vrScale);
     builtHeadset.position.copy(vrBox.getCenter(new THREE.Vector3())).multiplyScalar(-vrScale);
     this.headsetModel.add(builtHeadset);
@@ -727,7 +761,11 @@ export class HomeScene extends SceneBase {
     // Whisper of life only — the headset "sits" on its surface, so no bob.
     this.headsetModel.rotation.z = Math.sin(elapsed * 0.45) * 0.015;
     this.grassSway.value = elapsed;
-    this.handModel.position.y = Math.sin(elapsed * 0.7) * 0.05;
+    // The lotus rides the hand's bob (it's a sibling of handModel, not a
+    // child) so the palm clearance stays constant through the sway.
+    const handBob = Math.sin(elapsed * 0.7) * 0.05;
+    this.handModel.position.y = handBob;
+    this.lotus.group.position.y = PALM_OFFSET.y + handBob;
     this.lotus.update(elapsed);
     // The palm light's blue wash reaches the hand too (a bit weaker than
     // the petals — the light sits above the palm).
@@ -739,5 +777,11 @@ export class HomeScene extends SceneBase {
 
   resize(width: number, height: number): void {
     this.backdrop.resize(width, height);
+    // Rig aspect is already updated (webgl.ts resizes the rig first), so
+    // retarget the narrow-screen model trim from the fresh aspect.
+    const sz = this.sizeScale();
+    this.hand.scale.setScalar(sz);
+    this.phoneModel.scale.setScalar(sz);
+    this.headsetModel.scale.setScalar(sz);
   }
 }
