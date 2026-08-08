@@ -21,7 +21,9 @@
 		<p>These JSON files are the dictionary data bundled in the
 		<a href="/zhong.html">Zhong</a> Chinese-learning app: characters, words,
 		radicals, HSK vocabulary lists, and themed category lists, each entry
-		carrying simplified and traditional forms, pinyin, and English definitions.</p>
+		carrying simplified and traditional forms, pinyin, and English definitions —
+		plus the phono-semantic composition table
+		(<code>character_components.json</code>).</p>
 
 		<p><strong>License:</strong> the definitions are adapted from
 		<a href="https://cc-cedict.org/" rel="noopener">CC-CEDICT</a>
@@ -30,7 +32,23 @@
 		<strong>CC&nbsp;BY-SA&nbsp;4.0</strong> license. Changes made to the original CC-CEDICT
 		material include: reformatting into JSON, resolving cross-references, abridging entries
 		to at most seven senses, converting tone numbers to pinyin diacritics, and reordering
-		by frequency. Frequency ordering draws on
+		by frequency; the HSK files instead carry a single short gloss per entry, and their
+		traditional-character column is hand-curated (most recently 49 forms corrected
+		2026-08-08).</p>
+
+		<p>The HSK word lists themselves come from
+		<a href="https://github.com/gigacool/hanyu-shuiping-kaoshi" rel="noopener">hanyu-shuiping-kaoshi</a>
+		(gigacool, MIT), by way of
+		<a href="https://github.com/plaktos/hsk_csv" rel="noopener">hsk_csv</a> (plaktos);
+		the MIT notice is reproduced in <a href="LICENSE-hsk.txt">LICENSE-hsk.txt</a>, which
+		accompanies these downloads. The phono-semantic composition table
+		(<code>character_components.json</code>) is adapted from
+		<a href="https://en.wiktionary.org" rel="noopener">Wiktionary</a> (English and Chinese
+		editions, CC&nbsp;BY-SA&nbsp;4.0); changes made: the semantic/phonetic component pairs
+		were extracted from the wikis' glyph-origin templates (only a hand-verified subset of
+		the Chinese edition, whose etymologies describe the traditional forms), each component
+		was tagged with the script it applies to, and standard decompositions were hand-authored
+		for characters neither wiki covers. Frequency ordering draws on
 		<a href="https://github.com/hermitdave/FrequencyWords" rel="noopener">FrequencyWords</a>
 		(CC&nbsp;BY-SA&nbsp;4.0); example sentences within entries are from
 		<a href="https://tatoeba.org" rel="noopener">Tatoeba</a> (CC&nbsp;BY&nbsp;2.0&nbsp;FR);
@@ -46,6 +64,8 @@
 			<li><a href="characters.json">characters.json</a></li>
 			<li><a href="words.json">words.json</a></li>
 			<li><a href="radicals.json">radicals.json</a></li>
+			<li><a href="character_components.json">character_components.json</a></li>
+			<li><a href="LICENSE-hsk.txt">LICENSE-hsk.txt</a></li>
 			<li><a href="hsk1.json">hsk1.json</a></li>
 			<li><a href="hsk2.json">hsk2.json</a></li>
 			<li><a href="hsk3.json">hsk3.json</a></li>
