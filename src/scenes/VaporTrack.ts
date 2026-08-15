@@ -71,7 +71,7 @@ export class VaporTrack {
       const geometry = new THREE.TubeGeometry(
         new THREE.CatmullRomCurve3(points),
         segments,
-        0.12 + Math.random() * 0.12, // tube radius — the line's thickness
+        0.24 + Math.random() * 0.24, // tube radius — the line's thickness
         6,
         false,
       );
@@ -98,8 +98,8 @@ export class VaporTrack {
           varying vec2 vUv;
           void main() {
             vec3 pos = position;
-            pos.y += sin(uTime * 0.5 + pos.x * 0.9 + uPhase) * 0.11;
-            pos.z += cos(uTime * 0.35 + pos.x * 0.6 + uPhase) * 0.16;
+            pos.y += sin(uTime * 0.25 + pos.x * 0.9 + uPhase) * 0.11;
+            pos.z += cos(uTime * 0.175 + pos.x * 0.6 + uPhase) * 0.16;
             vT = (pos.x + uHalf) / (2.0 * uHalf);
             vUv = uv;
             gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
@@ -117,7 +117,7 @@ export class VaporTrack {
           void main() {
             // Caustics scrolled two ways along the tube: bright liquid
             // filaments streaming down the line.
-            float liquid = texture2D(uMap, vec2(vUv.x * 9.0 - uTime * 0.05 + uPhase, vUv.y * 1.5 + uTime * 0.02)).r;
+            float liquid = texture2D(uMap, vec2(vUv.x * 9.0 - uTime * 0.025 + uPhase, vUv.y * 1.5 + uTime * 0.01)).r;
             float ends = smoothstep(0.0, 0.14, vT) * smoothstep(1.0, 0.86, vT);
             float a = uOpacity * ends * uReveal * (0.35 + 1.1 * liquid);
             if (a < 0.004) discard;
