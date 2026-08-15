@@ -1,11 +1,13 @@
-// Home page backdrop: a deep night sky with slow white cloud banks while the
-// hero is on screen; uClouds 1 → 0 cross-fades the whole field to the
-// gunmetal page gray (uColorA/B) as the hero exits.
+// Home page backdrop: a deep night sky with slow white cloud banks that
+// persists down the whole page. The cloud field is anchored to the page, not
+// the screen: uScroll (viewports scrolled) slides the pattern so the banks
+// ride up with the content as you scroll. uClouds can still cross-fade the
+// field to the gunmetal page gray (uColorA/B) but currently holds at 1.
 // Needs the shared noise chunk (fbm) prepended by src/shaders/index.ts.
 varying vec2 vUv;
 
 uniform float uTime;
-uniform float uScroll;
+uniform float uScroll;   // page scroll in viewport-heights (uv y units)
 uniform float uAspect;
 uniform vec2 uPointer;
 uniform vec3 uColorA;    // page white
@@ -30,7 +32,11 @@ void main() {
     // pixels near the pointer get dragged along the stroke, swirled around
     // it, and rippled by rings breathing outward. It all warps the uv the
     // nebula samples, so the clouds smear like ink stirred in water.
-    vec2 duv = uv;
+    // Pin the cloud field to the page: shift the sampled coordinate down by
+    // the scrolled distance so the banks travel up the screen at exactly
+    // page-scroll speed (uv y spans one viewport, so the offset is 1:1).
+    // The cursor distortion below stays in screen space on purpose.
+    vec2 duv = uv - vec2(0.0, uScroll);
     vec2 d = uv - uMouse;
     float r = length(d);
     float influence = exp(-r * r * 18.0) * uClouds;

@@ -116,7 +116,9 @@ export class HomeScene extends SceneBase {
   private globesExit = 0;
   /** Scroll-tweened moon scale (the hero-exit "zoom in"). */
   private moonScale = MOON_SCALE_START;
-  /** Hero nebula clouds in paper.frag: 1 visible → 0 gone. */
+  /** Night-sky clouds in paper.frag. Held at 1 — the sky and its cloud
+   *  banks persist down the whole page (the pattern itself scrolls with the
+   *  content via the backdrop's uScroll). */
   private cloudFade: THREE.IUniform<number> = { value: 1 };
   /** Liquid-distortion cursor for paper.frag: smoothed position and velocity
    *  in the shader's aspect-corrected uv space. */
@@ -563,21 +565,36 @@ export class HomeScene extends SceneBase {
   buildScrollTimeline(): void {
     const scrub = this.ctx.scrub;
 
-    // Whole-page: nebula travel + dust drift (as before).
+    // Whole-page: cloud-field travel + dust drift. The backdrop's uScroll is
+    // in viewport-heights so paper.frag can slide the cloud banks 1:1 with
+    // the page; function-valued + invalidateOnRefresh so a resize (which
+    // changes the page's height in viewports) recomputes the end value.
     gsap
       .timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub },
+        scrollTrigger: {
+          trigger: document.body,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub,
+          invalidateOnRefresh: true,
+        },
       })
-      .to(this.backdrop.uniforms.uScroll, { value: 1 }, 0)
+      .to(
+        this.backdrop.uniforms.uScroll,
+        {
+          value: () =>
+            (document.documentElement.scrollHeight - window.innerHeight) / window.innerHeight,
+        },
+        0,
+      )
       .to(this.dust.uniforms.uScroll, { value: 1 }, 0);
 
     // Hero exit — the moon zooms in first, then rises off the top of the
-    // frame; meanwhile the night sky and its clouds cross-fade to paper
-    // white and the stars rise/recede/defocus/fade, so they all belong to
-    // the first beat only. Moon position/scale are derived from moonScale +
-    // globesExit in applyGlobePositions(). Ends at 'top 60%' so the sky is
-    // fully white before the games copy (dark text) settles into view.
+    // frame while the stars rise/recede/defocus/fade, so both belong to the
+    // first beat only. The night sky and its clouds stay for the whole page
+    // (see the whole-page timeline above). Moon position/scale are derived
+    // from moonScale + globesExit in applyGlobePositions().
     gsap
       .timeline({
         defaults: { ease: 'none' },
@@ -589,7 +606,6 @@ export class HomeScene extends SceneBase {
       .to(this, { moonScale: MOON_SCALE_END, duration: 1, ease: 'sine.inOut' }, 0)
       .to(this, { globesExit: 1, duration: 1, ease: 'sine.inOut' }, 0)
       .to(this.stars.uniforms.uExit, { value: 1, duration: 1 }, 0)
-      .to(this.cloudFade, { value: 0, duration: 1 }, 0)
       // Dust takes over from the stars once the hero is left behind (0.3 is
       // its authored resting opacity from the ParticleField config above).
       .to(this.dust.uniforms.uOpacity, { value: 0.3, duration: 1 }, 0);
