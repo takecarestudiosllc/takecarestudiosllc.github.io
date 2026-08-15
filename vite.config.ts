@@ -29,6 +29,7 @@ export default defineConfig({
         tgsvrterms: page('tgsvrtermsofservice'),
         zhongprivacy: page('zhongprivacypolicy'),
         zhongterms: page('zhongtermsofservice'),
+        siteprivacy: page('siteprivacy'),
       },
     },
   },

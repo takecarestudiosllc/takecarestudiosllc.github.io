@@ -31,6 +31,13 @@ export function initVideoEmbeds(): void {
     icon.setAttribute('aria-hidden', 'true');
     button.append(icon);
 
+    // Nothing is fetched from Google until the click, and this label is what
+    // makes that click an informed one (the GDPR consent for the embed).
+    const note = document.createElement('span');
+    note.className = 'video-embed__note';
+    note.textContent = 'Plays via YouTube';
+    button.append(note);
+
     button.addEventListener(
       'click',
       () => {
