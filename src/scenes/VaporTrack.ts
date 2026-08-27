@@ -19,19 +19,29 @@ const TRACK_GLSL = /* glsl */ `
 export interface VaporTrackOptions {
   /** Half-extent in x the track spans (size to cover the crossing + margins). */
   halfWidth: number;
-  /** Depth of the track's center plane (lines/motes weave ±0.7 around it). */
+  /** Depth of the track's center plane (shards/motes sit within ±0.7 of it). */
   z: number;
   lines?: number;
   motes?: number;
 }
 
-/** Light yellow-gold palette — additive tubes glow on the dark field. */
+/** Light yellow-gold palette — additive shards glow on the dark field. */
 const LINE_COLORS = ['#f0d98c', '#e8c96a', '#f5e6a8', '#ddb955', '#f8eec2'];
 
+/** Where the shard tips converge, in world units: the camera→phone sight
+ *  line extended back to the shard plane, so on screen the point sits
+ *  directly behind the phone's resting spot (camera (0, 0.4, 9), phone
+ *  rest (1.2, 0, 4), shard plane z = 2.4). */
+const FOCUS_X = 1.58;
+const FOCUS_Y = -0.13;
+
 /**
- * Ethereal track for the phone crossing: a loose braid of wavy translucent
- * lines around the trackY curve, plus soft motes that drift along it and
- * twinkle. Everything animates in shaders off one shared uTime; tween
+ * Geometric backdrop for the phone crossing: flat triangular shards of
+ * light — thin at the tip, wide at the far end — whose tips all meet near
+ * a point behind the phone's resting spot, like a pane of glass shattered
+ * around an impact. Additive blending makes overlapping shards bloom.
+ * Soft motes still drift along the trackY curve the phone rides.
+ * Everything animates in shaders off one shared uTime; tween
  * `uniforms.uReveal` 0 → 1 from a scroll timeline to fade the whole track
  * in and out with its beat.
  */
@@ -48,61 +58,63 @@ export class VaporTrack {
     const uHalf = { value: opts.halfWidth };
     this.uniforms = { uTime, uReveal };
 
-    // Seamless CC0 caustics map (opengameart.org/content/caustic-textures):
-    // scrolled along each tube it makes the light read as flowing liquid.
-    const liquidMap = new THREE.TextureLoader().load('/textures/caustics.png');
-    liquidMap.wrapS = liquidMap.wrapT = THREE.RepeatWrapping;
-
-    // --- vapory lines: layered translucent tubes (gl lines are stuck at
-    // 1px), each with its own offset, girth, phase, color, and opacity — the
-    // stack reads as one soft braid of mist.
-    const segments = 140;
-    for (let l = 0; l < (opts.lines ?? 7); l++) {
-      const offY = (Math.random() * 2 - 1) * 0.6;
-      const offZ = (Math.random() * 2 - 1) * 1.0;
-      const points: THREE.Vector3[] = [];
-      for (let i = 0; i <= segments; i++) {
-        const x = -opts.halfWidth + (i / segments) * opts.halfWidth * 2;
-        // The braid fans out wide toward the bottom-left end and gathers
-        // into a tight stream toward the top-right.
-        const spread = THREE.MathUtils.mapLinear(x, -opts.halfWidth, opts.halfWidth, 1.7, 0.35);
-        points.push(new THREE.Vector3(x, trackY(x) + offY * spread, opts.z + offZ * spread));
-      }
-      const geometry = new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3(points),
-        segments,
-        0.24 + Math.random() * 0.24, // tube radius — the line's thickness
-        6,
-        false,
+    // --- glass shards: flat triangles radiating from the focus, tips in,
+    // wide ends out, spread around the full circle with jittered angles and
+    // sizes so the layout reads as fracture, not a tidy star.
+    const lines = opts.lines ?? 10;
+    for (let l = 0; l < lines; l++) {
+      const angle = (l / lines) * Math.PI * 2 + (Math.random() * 2 - 1) * 0.28;
+      const length = 3.5 + Math.random() * (opts.halfWidth - 3.5);
+      const farHalfWidth = 0.45 + Math.random() * 0.85; // wide outer end
+      // Every tip sits at exactly the same point so the shards visibly
+      // converge; depthWrite is off, so the coplanar overlap is harmless.
+      const tip = new THREE.Vector3(FOCUS_X, FOCUS_Y, opts.z);
+      const dir = new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0);
+      const perp = new THREE.Vector3(-dir.y, dir.x, 0);
+      const far = tip.clone().addScaledVector(dir, length);
+      const cornerA = far.clone().addScaledVector(perp, -farHalfWidth);
+      const cornerB = far.clone().addScaledVector(perp, farHalfWidth);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(
+          new Float32Array([
+            tip.x, tip.y, tip.z,
+            cornerA.x, cornerA.y, cornerA.z,
+            cornerB.x, cornerB.y, cornerB.z,
+          ]),
+          3,
+        ),
+      );
+      // uv.x runs tip → wide end, uv.y runs across the width (tip sits at
+      // the middle) — the shader uses these for the edge glow and fades.
+      geometry.setAttribute(
+        'uv',
+        new THREE.BufferAttribute(new Float32Array([0, 0.5, 1, 0, 1, 1]), 2),
       );
       const material = new THREE.ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        // Additive: overlapping tubes brighten each other, so the braid
-        // glows light yellow-gold against the dark field.
+        side: THREE.DoubleSide,
+        // Additive: overlapping shards brighten each other, so the cluster
+        // of tips behind the phone blooms light yellow-gold.
         blending: THREE.AdditiveBlending,
         uniforms: {
           uTime,
           uReveal,
-          uHalf,
-          uMap: { value: liquidMap },
           uPhase: { value: Math.random() * Math.PI * 2 },
-          uOpacity: { value: 0.14 + Math.random() * 0.24 },
+          uOpacity: { value: 0.16 + Math.random() * 0.18 },
           uColor: { value: new THREE.Color(LINE_COLORS[l % LINE_COLORS.length]) },
+          // Staggered entrance: each shard claims its own slice of the
+          // shared uReveal ramp. The stride shuffle spreads consecutive
+          // delays around the fan so neighbors don't appear in sequence.
+          uDelay: { value: (((l * 7) % lines) / lines) * 0.6 + Math.random() * 0.05 },
         },
         vertexShader: /* glsl */ `
-          uniform float uTime;
-          uniform float uPhase;
-          uniform float uHalf;
-          varying float vT;
           varying vec2 vUv;
           void main() {
-            vec3 pos = position;
-            pos.y += sin(uTime * 0.25 + pos.x * 0.9 + uPhase) * 0.11;
-            pos.z += cos(uTime * 0.175 + pos.x * 0.6 + uPhase) * 0.16;
-            vT = (pos.x + uHalf) / (2.0 * uHalf);
             vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
         fragmentShader: /* glsl */ `
@@ -111,17 +123,27 @@ export class VaporTrack {
           uniform float uReveal;
           uniform float uTime;
           uniform float uPhase;
-          uniform sampler2D uMap;
-          varying float vT;
+          uniform float uDelay;
           varying vec2 vUv;
           void main() {
-            // Caustics scrolled two ways along the tube: bright liquid
-            // filaments streaming down the line.
-            float liquid = texture2D(uMap, vec2(vUv.x * 9.0 - uTime * 0.025 + uPhase, vUv.y * 1.5 + uTime * 0.01)).r;
-            float ends = smoothstep(0.0, 0.14, vT) * smoothstep(1.0, 0.86, vT);
-            float a = uOpacity * ends * uReveal * (0.35 + 1.1 * liquid);
+            // This shard's own slice of the shared reveal ramp: it sits out
+            // the first uDelay of uReveal, then fades in over the next 0.4
+            // — every shard has a different uDelay, so they arrive
+            // staggered as the user scrolls.
+            float r = smoothstep(uDelay, uDelay + 0.4, uReveal);
+            // Materialize tip-first: a soft wipe sweeps from the tip to the
+            // wide end as r ramps (grow overshoots so r = 1 shows it all).
+            float grow = r * 1.3;
+            float wipe = smoothstep(grow, grow - 0.3, vUv.x);
+            // Faint glassy fill, brightest at the tip, dissolving toward
+            // the wide end; crisp bright rims along the two long edges.
+            float fill = mix(1.0, 0.3, vUv.x) * smoothstep(1.0, 0.72, vUv.x);
+            float rim = smoothstep(0.16, 0.0, min(vUv.y, 1.0 - vUv.y)) * smoothstep(1.0, 0.88, vUv.x);
+            // A light pulse sweeps tip → edge, energy radiating outward.
+            float pulse = pow(0.5 + 0.5 * sin((vUv.x - uTime * 0.045) * 12.566 + uPhase), 6.0);
+            float a = uOpacity * r * wipe * (fill * (0.45 + 0.9 * pulse) + rim * 0.85);
             if (a < 0.004) discard;
-            gl_FragColor = vec4(uColor * (0.8 + 0.8 * liquid), a);
+            gl_FragColor = vec4(uColor * (0.85 + 0.9 * pulse), a);
           }
         `,
       });
@@ -144,7 +166,7 @@ export class VaporTrack {
     const moteMaterial = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending, // same glow treatment as the lines
+      blending: THREE.AdditiveBlending, // same glow treatment as the beams
       uniforms: {
         uTime,
         uReveal,
@@ -165,7 +187,7 @@ export class VaporTrack {
           // Drift along the track, wrapping at the ends; fade near them so
           // the wrap never pops.
           float x = mod(position.x + uTime * (0.15 + aSeed * 0.35) + uHalf, 2.0 * uHalf) - uHalf;
-          // Same bottom-left fan-out as the lines.
+          // Fan out wide toward the bottom-left end, gather toward top-right.
           float spread = mix(1.7, 0.35, (x + uHalf) / (2.0 * uHalf));
           float y = trackY(x) + position.y * spread + sin(uTime * (0.5 + aSeed) + aSeed * 40.0) * 0.12;
           float twinkle = 0.55 + 0.45 * sin(uTime * (0.8 + aSeed * 1.4) + aSeed * 21.0);

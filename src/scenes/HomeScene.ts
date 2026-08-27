@@ -369,10 +369,11 @@ export class HomeScene extends SceneBase {
     this.phone.add(this.phoneModel);
     this.scene.add(this.phone);
 
-    // The ethereal track the phone rides: vapory lines + motes braided along
-    // the same trackY curve that steers the phone's y in update(). Center
-    // plane sits well behind PHONE_Z so even with the ±1 z jitter every
-    // line stays behind the phone.
+    // The geometric backdrop behind the phone: triangular glass shards
+    // whose tips meet behind the phone's resting spot, plus motes drifting
+    // along the same trackY curve that steers the phone's y in update().
+    // The shard plane sits well behind PHONE_Z so every shard stays behind
+    // the phone.
     this.vapor = new VaporTrack({ halfWidth: 9, z: PHONE_Z - 1.6 });
     this.scene.add(this.vapor.group);
 
@@ -666,21 +667,24 @@ export class HomeScene extends SceneBase {
       .fromTo(
         this.phone.position,
         { x: () => this.offscreenX() },
-        { x: () => PHONE_REST_X * this.posScale(), duration: 0.85, ease: 'sine.out' },
+        { x: () => PHONE_REST_X * this.posScale(), duration: 0.62, ease: 'power2.out' },
         0,
       )
-      .fromTo(this, { phoneLift: 2.5 }, { phoneLift: 0, duration: 0.4, ease: 'sine.out' }, 0)
+      .fromTo(this, { phoneLift: 2.5 }, { phoneLift: 0, duration: 0.32, ease: 'power2.out' }, 0)
       // Sweep stays well under ±90° so the screen faces the viewer the whole
       // ride — the back of the phone is never shown. Vertical motion is NOT
       // tweened here: update() blends trackY(x) toward PHONE_REST_Y.
       .fromTo(
         this.phone.rotation,
         { y: -0.7 },
-        { y: PHONE_REST_ROT, duration: 0.85, ease: 'sine.out' },
+        { y: PHONE_REST_ROT, duration: 0.62, ease: 'power2.out' },
         0,
       )
-      .to(this, { phoneRest: 1, duration: 0.35, ease: 'sine.inOut' }, 0.5)
-      .fromTo(this.vapor.uniforms.uReveal, { value: 0 }, { value: 1, duration: 0.22, ease: 'sine.out' }, 0)
+      .to(this, { phoneRest: 1, duration: 0.28, ease: 'sine.inOut' }, 0.38)
+      // Longer ramp than the old fade: the shards stagger themselves off
+      // this one value (each waits out its own uDelay slice), so the ramp
+      // needs room for the last arrivals.
+      .fromTo(this.vapor.uniforms.uReveal, { value: 0 }, { value: 1, duration: 0.34, ease: 'sine.out' }, 0)
       .to(this.vapor.uniforms.uReveal, { value: 0, duration: 0.25, ease: 'sine.in' }, 0.75);
 
     // After the pin releases, the resting phone rides up at scroll speed so
