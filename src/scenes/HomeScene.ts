@@ -397,6 +397,22 @@ export class HomeScene extends SceneBase {
 
     this.ctx.rig.position.set(0, 0.4, 9);
     this.ctx.rig.lookAt.set(0, 0, 0);
+    this.aimVaporFocus();
+  }
+
+  /** Aim the shard convergence point at the phone's resting spot: the
+   *  camera→rest sight line extended back to the shard plane. The rest x
+   *  compresses with posScale() on narrow screens, so this re-derives the
+   *  focus (rather than baking the desktop constant) and is re-run on
+   *  resize — otherwise portrait pushes the convergence off-screen right. */
+  private aimVaporFocus(): void {
+    const rig = this.ctx.rig.position;
+    const shardZ = PHONE_Z - 1.6;
+    const t = (rig.z - shardZ) / (rig.z - PHONE_Z);
+    this.vapor.setFocus(
+      rig.x + (PHONE_REST_X * this.posScale() - rig.x) * t,
+      rig.y + (PHONE_REST_Y - rig.y) * t,
+    );
   }
 
   /** Horizontal layout compression for narrow screens: 1 at the design
@@ -803,5 +819,6 @@ export class HomeScene extends SceneBase {
     this.hand.scale.setScalar(sz);
     this.phoneModel.scale.setScalar(sz);
     this.headsetModel.scale.setScalar(sz);
+    this.aimVaporFocus();
   }
 }

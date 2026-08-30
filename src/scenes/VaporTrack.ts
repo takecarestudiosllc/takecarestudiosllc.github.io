@@ -28,10 +28,12 @@ export interface VaporTrackOptions {
 /** Light yellow-gold palette — additive shards glow on the dark field. */
 const LINE_COLORS = ['#f0d98c', '#e8c96a', '#f5e6a8', '#ddb955', '#f8eec2'];
 
-/** Where the shard tips converge, in world units: the camera→phone sight
- *  line extended back to the shard plane, so on screen the point sits
- *  directly behind the phone's resting spot (camera (0, 0.4, 9), phone
- *  rest (1.2, 0, 4), shard plane z = 2.4). */
+/** Default convergence point for the shard tips, in world units: the
+ *  camera→phone sight line extended back to the shard plane at the design
+ *  aspect (camera (0, 0.4, 9), phone rest (1.2, 0, 4), shard plane
+ *  z = 2.4). The phone's rest x compresses on narrow screens, so callers
+ *  retarget via setFocus() — a baked-in x would drift off-screen right in
+ *  portrait. */
 const FOCUS_X = 1.58;
 const FOCUS_Y = -0.13;
 
@@ -51,6 +53,9 @@ export class VaporTrack {
     uTime: THREE.IUniform<number>;
     uReveal: THREE.IUniform<number>;
   };
+  /** All shards live here with their tips at the local origin, so moving
+   *  this group moves the convergence point (see setFocus). */
+  private shards = new THREE.Group();
 
   constructor(opts: VaporTrackOptions) {
     const uTime = { value: 0 };
@@ -61,6 +66,8 @@ export class VaporTrack {
     // --- glass shards: flat triangles radiating from the focus, tips in,
     // wide ends out, spread around the full circle with jittered angles and
     // sizes so the layout reads as fracture, not a tidy star.
+    this.shards.position.set(FOCUS_X, FOCUS_Y, opts.z);
+    this.group.add(this.shards);
     const lines = opts.lines ?? 10;
     for (let l = 0; l < lines; l++) {
       const angle = (l / lines) * Math.PI * 2 + (Math.random() * 2 - 1) * 0.28;
@@ -68,7 +75,7 @@ export class VaporTrack {
       const farHalfWidth = 0.45 + Math.random() * 0.85; // wide outer end
       // Every tip sits at exactly the same point so the shards visibly
       // converge; depthWrite is off, so the coplanar overlap is harmless.
-      const tip = new THREE.Vector3(FOCUS_X, FOCUS_Y, opts.z);
+      const tip = new THREE.Vector3(0, 0, 0);
       const dir = new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0);
       const perp = new THREE.Vector3(-dir.y, dir.x, 0);
       const far = tip.clone().addScaledVector(dir, length);
@@ -147,7 +154,7 @@ export class VaporTrack {
           }
         `,
       });
-      this.group.add(new THREE.Mesh(geometry, material));
+      this.shards.add(new THREE.Mesh(geometry, material));
     }
 
     // --- motes: soft dots flowing along the curve, each on its own lap.
@@ -212,6 +219,13 @@ export class VaporTrack {
     const motes = new THREE.Points(moteGeometry, moteMaterial);
     motes.frustumCulled = false; // motes flow in the shader
     this.group.add(motes);
+  }
+
+  /** Move the shard convergence point (x/y at the shard plane). Call on
+   *  resize so the focus tracks the phone's aspect-compressed rest spot. */
+  setFocus(x: number, y: number): void {
+    this.shards.position.x = x;
+    this.shards.position.y = y;
   }
 
   update(elapsed: number): void {
