@@ -25,8 +25,8 @@ export interface VaporTrackOptions {
   motes?: number;
 }
 
-/** Light yellow-gold palette — additive shards glow on the dark field. */
-const LINE_COLORS = ['#f0d98c', '#e8c96a', '#f5e6a8', '#ddb955', '#f8eec2'];
+/** Jade and lavender light connect the phone to the surrounding chapters. */
+const LINE_COLORS = ['#86d9c5', '#a0bde9', '#b8ace5', '#7bc4b0', '#b4e6dc'];
 
 /** Default convergence point for the shard tips, in world units: the
  *  camera→phone sight line extended back to the shard plane at the design
@@ -104,13 +104,13 @@ export class VaporTrack {
         depthWrite: false,
         side: THREE.DoubleSide,
         // Additive: overlapping shards brighten each other, so the cluster
-        // of tips behind the phone blooms light yellow-gold.
+        // of tips behind the phone carries a faint jade light.
         blending: THREE.AdditiveBlending,
         uniforms: {
           uTime,
           uReveal,
           uPhase: { value: Math.random() * Math.PI * 2 },
-          uOpacity: { value: 0.16 + Math.random() * 0.18 },
+          uOpacity: { value: 0.016 + Math.random() * 0.022 },
           uColor: { value: new THREE.Color(LINE_COLORS[l % LINE_COLORS.length]) },
           // Staggered entrance: each shard claims its own slice of the
           // shared uReveal ramp. The stride shuffle spreads consecutive
@@ -141,14 +141,14 @@ export class VaporTrack {
             // Materialize tip-first: a soft wipe sweeps from the tip to the
             // wide end as r ramps (grow overshoots so r = 1 shows it all).
             float grow = r * 1.3;
-            float wipe = smoothstep(grow, grow - 0.3, vUv.x);
+            float wipe = (1.0 - smoothstep(grow - 0.3, grow, vUv.x));
             // Faint glassy fill, brightest at the tip, dissolving toward
             // the wide end; crisp bright rims along the two long edges.
-            float fill = mix(1.0, 0.3, vUv.x) * smoothstep(1.0, 0.72, vUv.x);
-            float rim = smoothstep(0.16, 0.0, min(vUv.y, 1.0 - vUv.y)) * smoothstep(1.0, 0.88, vUv.x);
+            float fill = mix(1.0, 0.3, vUv.x) * (1.0 - smoothstep(0.72, 1.0, vUv.x));
+            float rim = (1.0 - smoothstep(0.0, 0.16, min(vUv.y, 1.0 - vUv.y))) * (1.0 - smoothstep(0.88, 1.0, vUv.x));
             // A light pulse sweeps tip → edge, energy radiating outward.
             float pulse = pow(0.5 + 0.5 * sin((vUv.x - uTime * 0.045) * 12.566 + uPhase), 6.0);
-            float a = uOpacity * r * wipe * (fill * (0.45 + 0.9 * pulse) + rim * 0.85);
+            float a = uOpacity * r * wipe * (fill * (0.15 + 0.3 * pulse) + rim * 0.7);
             if (a < 0.004) discard;
             gl_FragColor = vec4(uColor * (0.85 + 0.9 * pulse), a);
           }
@@ -178,9 +178,9 @@ export class VaporTrack {
         uTime,
         uReveal,
         uHalf,
-        uSize: { value: 0.09 },
+        uSize: { value: 0.035 },
         uScale: { value: window.innerHeight * Math.min(window.devicePixelRatio || 1, 2) },
-        uColor: { value: new THREE.Color(0xe8c96a) },
+        uColor: { value: new THREE.Color(0x83cbb8) },
       },
       vertexShader: /* glsl */ `
         ${TRACK_GLSL}
@@ -198,7 +198,7 @@ export class VaporTrack {
           float spread = mix(1.7, 0.35, (x + uHalf) / (2.0 * uHalf));
           float y = trackY(x) + position.y * spread + sin(uTime * (0.5 + aSeed) + aSeed * 40.0) * 0.12;
           float twinkle = 0.55 + 0.45 * sin(uTime * (0.8 + aSeed * 1.4) + aSeed * 21.0);
-          vAlpha = twinkle * smoothstep(1.0, 0.85, abs(x) / uHalf);
+          vAlpha = twinkle * (1.0 - smoothstep(0.85, 1.0, abs(x) / uHalf));
           vec4 mv = modelViewMatrix * vec4(x, y, position.z, 1.0);
           gl_PointSize = uSize * (0.5 + aSeed) * uScale / -mv.z;
           gl_Position = projectionMatrix * mv;
@@ -210,7 +210,7 @@ export class VaporTrack {
         varying float vAlpha;
         void main() {
           float d = length(gl_PointCoord - 0.5);
-          float a = smoothstep(0.5, 0.08, d) * vAlpha * uReveal * 0.55;
+          float a = (1.0 - smoothstep(0.08, 0.5, d)) * vAlpha * uReveal * 0.55;
           if (a < 0.004) discard;
           gl_FragColor = vec4(uColor, a);
         }

@@ -1,42 +1,32 @@
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { SceneBase } from './SceneBase';
 import { Backdrop } from './Backdrop';
 import { ParticleField } from './ParticleField';
 import { StarField } from './StarField';
 import { VaporTrack, trackY } from './VaporTrack';
-import { toonGradient, addOutline } from './toon';
-import { LotusFlower, GLOW_TINT_BASE, GLOW_TINT_BLUE } from './LotusFlower';
+import { LotusFlower, GLOW_TINT_BLUE } from './LotusFlower';
 import { buildHeadset } from './HeadsetModel';
 import { InkGlobe, AURA_SCALE } from './InkGlobe';
 import { shaders } from '../shaders';
 
-/**
- * Studio landing page — four scroll beats over a paper-white field with a
- * slowly turning black-and-white moon globe floating right:
- *   1. Hero copy (DOM only, canvas is backdrop).
- *   2. #games — DOM cards slide in (see domAnimations), canvas stays ambient.
- *   3. #model-showcase — a 3D model crosses the screen right → left, scrubbed.
- *   4. #lotus — a hand rises from below, palm-light ignites and blooms into a
- *      lotus; the finale copy fades in on the last stretch (DOM side).
- *
- * Scroll-driven values are tweened on wrapper groups / plain properties;
- * idle life (bobbing, spin, flicker) is layered on inner nodes in update()
- * so the two never fight.
+/** Four connected chapters. Scroll owns wrapper poses; idle motion stays on children.
+ * Assets load independently ahead of their chapter, so the moon never waits on a GLB.
  */
 
 // The moon belongs to the hero beat only. It hangs small at MOON_X right,
 // then on the hero exit it zooms in (scale tween) and finally rises off the
 // top of the frame, aura included.
 const MOON_RADIUS = 1.15;
-const MOON_X = 4.2;
-const MOON_Y = 1.35;
+const MOON_X = 3.2;
+const MOON_Y = 0.4;
 /** The exit drifts the moon to top-center, not straight up. */
 const MOON_EXIT_X = 0;
 const MOON_Z = -1;
 /** The moon rests small and swells to full size as the hero exits. */
-const MOON_SCALE_START = 0.55;
+const MOON_SCALE_START = 1.05;
 const MOON_SCALE_END = 1.5;
 /** Extra exit clearance for the pointer sway: the rig shifts up to ±0.5 and
  *  its lookAt compensation rotates the frustum, moving the edge ~1 world
@@ -58,12 +48,12 @@ const HEADSET_Z = -2.5;
 const HEADSET_HIDDEN_Y = 8;
 /** Where the headset stands: x right of the copy, resting so its base
  *  touches the surface line. */
-const HEADSET_X = 1.9;
-const HEADSET_REST_Y = -1.05;
+const HEADSET_X = 3.0;
+const HEADSET_REST_Y = -0.6;
 /** Ground line for the landing kit (grass, pool, base plate, beam target).
  *  Sits below HEADSET_REST_Y by a bit more than the headset's half-height
  *  so the landed headset rests ON the grass instead of sinking into it. */
-const SURFACE_Y = -2.35;
+const SURFACE_Y = -1.9;
 /** Yaw that turns the headset body slightly to the viewer's right while
  *  the wearer side (local -z on the built model, where the lenses live)
  *  faces the camera near-on — frontal enough that the back-strap connector
@@ -77,7 +67,7 @@ const BEAM_SILVER = new THREE.Vector3(0.91, 0.93, 0.96);
 /** Margin past the frustum edge covering the model's own size + camera sway. */
 const OFFSCREEN_MARGIN = 2.2;
 const HAND_HIDDEN_Y = -7;
-const HAND_RAISED_Y = 0.5;
+const HAND_RAISED_Y = -1.3;
 
 // Orientation of the loaded hand model: upturned palm (holding the lotus),
 // fingers reaching toward the camera. Tuned visually with world-space
@@ -88,14 +78,9 @@ const HAND_RAISED_Y = 0.5;
 const HAND_ROTATION = new THREE.Euler(-2.599, 0.048, 0.15, 'XYZ');
 const UP = new THREE.Vector3(0, 1, 0);
 const HAND_SCALE = 21;
-/** Where the lotus sits relative to the hand wrapper (roughly the palm).
- *  Scales with HAND_SCALE — the palm's wrapper-space position moves linearly
- *  with the model scale, so double the hand means double this offset.
- *  y holds the lotus at its pre-raise height: when HAND_RAISED_Y moved up
- *  0.3 (-0.2 → 0.1), this dropped 0.3 to compensate (0.14 → -0.16); then
- *  lifted 0.22 total so the fully-open outer petals (which fold down well
- *  past the flower base) clear the fingers instead of cutting into them. */
-const PALM_OFFSET = new THREE.Vector3(0, 0.06, 1.5);
+/** Lotus offset within the hand wrapper. Positive Z faces the camera;
+ *  the extra palm clearance keeps the opening petals in front of the hand. */
+const PALM_OFFSET = new THREE.Vector3(0, 0.06, 2.0);
 /** Lean the bloom toward the camera so its glowing heart reads, not just
  *  the petal rim (camera sits above and in front of the flower). */
 const LOTUS_TILT = 1.05;
@@ -107,7 +92,7 @@ export class HomeScene extends SceneBase {
   private vapor!: VaporTrack;
   private lotus!: LotusFlower;
   /** Hero globes — just the moon today, keep the list for future additions.
-   *  Empty until their textures finish loading in loadModels(). */
+   *  Empty until the independent moon texture finishes loading. */
   private globes: InkGlobe[] = [];
   /** The right-side moon (also in globes); null until loaded. */
   private moon: InkGlobe | null = null;
@@ -116,10 +101,34 @@ export class HomeScene extends SceneBase {
   private globesExit = 0;
   /** Scroll-tweened moon scale (the hero-exit "zoom in"). */
   private moonScale = MOON_SCALE_START;
-  /** Night-sky clouds in paper.frag. Held at 1 — the sky and its cloud
-   *  banks persist down the whole page (the pattern itself scrolls with the
-   *  content via the backdrop's uScroll). */
+  /** Shared atmospheric strength; chapter lighting shifts violet → jade → violet. */
   private cloudFade: THREE.IUniform<number> = { value: 1 };
+  private chapter: THREE.IUniform<number> = { value: 0 };
+  private motion = { games: 0, gamesExit: 0, phone: 0, phoneExit: 0, lotus: 0, lotusExit: 0 };
+  private landing = new THREE.Group();
+  private initialAnchor = 0;
+  private initialScale = 1;
+  private chapterTops: Record<string, number> = {};
+  private shortLayout(): boolean { return window.innerHeight <= 700; }
+  private syncLayout = (): void => {
+    for (const id of ['games', 'model-showcase', 'lotus']) {
+      this.chapterTops[id] = document.getElementById(id)?.offsetTop ?? 0;
+    }
+  };
+  private worldY(pixelY: number, z: number): number {
+    const halfHeight = this.halfWidthAt(z) / this.ctx.rig.camera.aspect;
+    return halfHeight * (1 - 2 * pixelY / window.innerHeight);
+  }
+  private stageY(id: string, slot: number, z: number, rest: number): number {
+    if (!this.shortLayout()) return rest;
+    return this.worldY((this.chapterTops[id] ?? 0) + slot - window.scrollY, z);
+  }
+  private mobile(): boolean { return window.innerWidth <= 900; }
+  private phoneX(): number { return this.mobile() ? .22 : PHONE_REST_X; }
+  private phoneY(): number { return this.mobile() ? -1.03 : PHONE_REST_Y; }
+  private headsetX(): number { return this.mobile() ? 0 : HEADSET_X * this.posScale(); }
+  private headsetY(): number { return this.mobile() ? -2.1 : HEADSET_REST_Y; }
+
   /** Liquid-distortion cursor for paper.frag: smoothed position and velocity
    *  in the shader's aspect-corrected uv space. */
   private mouse: THREE.IUniform<THREE.Vector2> = { value: new THREE.Vector2() };
@@ -140,7 +149,7 @@ export class HomeScene extends SceneBase {
   private hand = new THREE.Group();
   private handModel = new THREE.Group();
   /** Hand material — its emissive gets the lotus's blue wash in update(). */
-  private handMat: THREE.MeshToonMaterial | null = null;
+  private handMat: THREE.MeshLambertMaterial | null = null;
   private headset = new THREE.Group();
   private headsetModel = new THREE.Group();
   /** Moonbeam: a cone anchored to the moon that grows toward the landing
@@ -167,11 +176,11 @@ export class HomeScene extends SceneBase {
     this.backdrop = new Backdrop(
       shaders.paperFrag,
       {
-        a: 0x2a3038, // gunmetal page field
-        b: 0x39414c, // faint lighter corner wash
+        a: 0x080b14, // midnight field
+        b: 0x19132d, // violet wash
         c: 0x111114, // unused
       },
-      { uClouds: this.cloudFade, uMouse: this.mouse, uMouseVel: this.mouseVel },
+      { uClouds: this.cloudFade, uMouse: this.mouse, uMouseVel: this.mouseVel, uChapter: this.chapter, uDetail: { value: this.ctx.quality.density > 0.4 ? 1 : 0 } },
     );
     this.scene.add(this.backdrop.mesh);
 
@@ -179,15 +188,15 @@ export class HomeScene extends SceneBase {
     // timeline sends them up, away, out of focus, and gone.
     this.stars = new StarField({
       count: Math.round(40 * this.ctx.quality.density),
-      size: 0.21,
+      size: 0.12,
 
-      opacity: 0.85,
+      opacity: 0.45,
       bounds: { x: 9.5, y: 5.5, zNear: -3, zFar: -6 },
     });
     this.scene.add(this.stars.points);
 
     this.dust = new ParticleField({
-      count: Math.round(900 * this.ctx.quality.density),
+      count: Math.round(260 * this.ctx.quality.density),
       color: 0xaab3c4, // pale motes read on the gunmetal field
       size: 0.1,
       opacity: 0.3,
@@ -195,7 +204,7 @@ export class HomeScene extends SceneBase {
       rise: 0.05,
       parallax: 2.5,
       bounds: { x: 11, y: 7, zNear: 4, zFar: -8 },
-      blending: THREE.NormalBlending, // additive washes out against white
+      blending: THREE.NormalBlending, // restrained ambient particles
     });
     // Hidden during the hero (stars own that beat); the hero-exit timeline
     // fades the dust in as the stars leave.
@@ -216,8 +225,11 @@ export class HomeScene extends SceneBase {
     // --- beat 2: VR headset stage (parked above until the games beat) -------
     // Anchor x compresses on narrow screens so the whole tableau stays
     // in frame; sizes get the init-time mobile trim.
-    const anchorX = HEADSET_X * this.posScale();
+    const anchorX = this.headsetX();
+    this.initialAnchor = anchorX;
+    this.scene.add(this.landing);
     const sz = this.sizeScale();
+    this.initialScale = sz;
     this.headset.position.set(anchorX, HEADSET_HIDDEN_Y, HEADSET_Z);
     this.headset.rotation.y = HEADSET_REST_ROT;
     this.headsetModel.scale.setScalar(sz);
@@ -277,20 +289,20 @@ export class HomeScene extends SceneBase {
     const pool = new THREE.Mesh(new THREE.CircleGeometry(1.6 * sz, 40), this.poolMaterial);
     pool.scale.y = 0.22;
     pool.position.set(anchorX, SURFACE_Y, HEADSET_Z - 0.2);
-    this.scene.add(pool);
+    this.landing.add(pool);
     // The headset lands on a circular patch of 3D grass (Touch Grass,
     // after all): a green toon base disc with a few hundred instanced
     // triangular blades in varied greens standing inside its rim.
     // Unlit flat colors — the beam spotlight overexposes lit materials at
     // this range, and flat greens suit the comic look anyway.
     const baseMat = new THREE.MeshBasicMaterial({
-      color: 0x2c8a3e,
+      color: 0x163d31,
       transparent: true,
       opacity: 0,
     });
     const base = new THREE.Mesh(new THREE.CylinderGeometry(2.9 * sz, 2.9 * sz, 0.14, 48), baseMat);
     base.position.set(anchorX, SURFACE_Y - 0.07, HEADSET_Z);
-    this.scene.add(base);
+    this.landing.add(base);
 
     // One tapered triangle per blade, instanced; per-instance color picks
     // from a small palette of meadow greens.
@@ -322,16 +334,16 @@ export class HomeScene extends SceneBase {
         `,
       )}`;
     };
-    const GRASS_COUNT = 975;
+    const GRASS_COUNT = Math.round(480 * this.ctx.quality.density);
     const grass = new THREE.InstancedMesh(bladeGeo, bladeMat, GRASS_COUNT);
     grass.frustumCulled = false; // instance transforms live outside the geometry bounds
     const dummy = new THREE.Object3D();
     const greens = [
-      new THREE.Color(0x53c437),
-      new THREE.Color(0x3fae2a),
-      new THREE.Color(0x74d94e),
-      new THREE.Color(0x2f9130),
-      new THREE.Color(0x8ce063),
+      new THREE.Color(0x468f67),
+      new THREE.Color(0x367b58),
+      new THREE.Color(0x64a37a),
+      new THREE.Color(0x286249),
+      new THREE.Color(0x85b78b),
     ];
     for (let i = 0; i < GRASS_COUNT; i++) {
       const r = 2.8 * sz * Math.sqrt(Math.random());
@@ -349,12 +361,12 @@ export class HomeScene extends SceneBase {
         (Math.random() - 0.5) * 0.6,
         (Math.random() - 0.5) * 0.3,
       );
-      dummy.scale.set(0.8 + Math.random() * 0.8, 0.26 + Math.random() * 0.34, 1);
+      dummy.scale.set(0.8 + Math.random() * 0.8, (0.18 + Math.random() * 0.2) * sz, 1);
       dummy.updateMatrix();
       grass.setMatrixAt(i, dummy.matrix);
       grass.setColorAt(i, greens[Math.floor(Math.random() * greens.length)]);
     }
-    this.scene.add(grass);
+    this.landing.add(grass);
     this.grassMaterials = [baseMat, bladeMat];
 
     // The light that actually illuminates the headset from above.
@@ -374,7 +386,7 @@ export class HomeScene extends SceneBase {
     // along the same trackY curve that steers the phone's y in update().
     // The shard plane sits well behind PHONE_Z so every shard stays behind
     // the phone.
-    this.vapor = new VaporTrack({ halfWidth: 9, z: PHONE_Z - 1.6 });
+    this.vapor = new VaporTrack({ halfWidth: 9, z: PHONE_Z - 1.6, lines: 12, motes: Math.round(65 * this.ctx.quality.density) });
     this.scene.add(this.vapor.group);
 
     // --- beat 4: hand + lotus (starts parked below the frustum) -------------
@@ -382,7 +394,7 @@ export class HomeScene extends SceneBase {
     // phoneModel/headsetModel above) so resize() can retarget it live;
     // everything inside is authored at full size.
     this.hand.position.set(0, HAND_HIDDEN_Y, HAND_Z);
-    this.hand.scale.setScalar(sz);
+    this.hand.scale.setScalar(this.mobile() ? .48 : .68);
     this.handModel.rotation.copy(HAND_ROTATION);
     this.handModel.scale.setScalar(HAND_SCALE);
     this.hand.add(this.handModel);
@@ -393,11 +405,15 @@ export class HomeScene extends SceneBase {
     this.hand.add(this.lotus.group);
     this.scene.add(this.hand);
 
-    void this.loadModels();
+    void this.loadMoon().catch((error) => console.warn('Moon illustration fallback:', error));
+    this.loadNear('#games', () => this.loadHeadset());
+    this.loadNear('#model-showcase', () => this.loadPhone());
+    this.loadNear('#lotus', () => this.loadHand());
 
     this.ctx.rig.position.set(0, 0.4, 9);
     this.ctx.rig.lookAt.set(0, 0, 0);
     this.aimVaporFocus();
+    this.syncLayout();
   }
 
   /** Aim the shard convergence point at the phone's resting spot: the
@@ -410,8 +426,8 @@ export class HomeScene extends SceneBase {
     const shardZ = PHONE_Z - 1.6;
     const t = (rig.z - shardZ) / (rig.z - PHONE_Z);
     this.vapor.setFocus(
-      rig.x + (PHONE_REST_X * this.posScale() - rig.x) * t,
-      rig.y + (PHONE_REST_Y - rig.y) * t,
+      rig.x + (this.phoneX() - rig.x) * t,
+      rig.y + (this.phoneY() - rig.y) * t,
     );
   }
 
@@ -423,12 +439,9 @@ export class HomeScene extends SceneBase {
     return Math.min(1, this.ctx.rig.camera.aspect / 1.6);
   }
 
-  /** Model size trim for narrow screens. Applied to the model wrapper
-   *  groups and re-applied on resize(), so a window that loads narrow and
-   *  then widens recovers full-size models. Ground scatter (pool, base,
-   *  grass) bakes the init-time value into its geometry and stays put. */
+  /** Mobile art direction reserves the lower part of the viewport for models. */
   private sizeScale(): number {
-    return THREE.MathUtils.clamp(this.ctx.rig.camera.aspect / 1.6, 0.55, 1);
+    return this.mobile() ? 0.43 : 1;
   }
 
   /** Frustum half-width at depth z (the camera looks down -z from the rig). */
@@ -463,11 +476,12 @@ export class HomeScene extends SceneBase {
    */
   private applyGlobePositions(): void {
     if (this.moon) {
-      this.moon.group.scale.setScalar(this.moonScale);
+      this.moon.group.scale.setScalar(this.moonScale * (this.mobile() ? .52 : 1));
       const exitY = this.moonExitY(this.moonScale);
-      const restX = MOON_X * this.posScale();
+      const restX = this.mobile() ? this.halfWidthAt(MOON_Z) * .34 : MOON_X * this.posScale();
+      const restY = this.shortLayout() ? this.worldY((this.mobile() ? 650 : 360) - window.scrollY, MOON_Z) : this.mobile() ? -1.8 : MOON_Y;
       this.moon.group.position.x = restX + (MOON_EXIT_X - restX) * this.globesExit;
-      this.moon.group.position.y = MOON_Y + (exitY - MOON_Y) * this.globesExit;
+      this.moon.group.position.y = restY + (exitY - restY) * this.globesExit;
     }
   }
 
@@ -480,15 +494,19 @@ export class HomeScene extends SceneBase {
     return this.halfWidthAt(PHONE_Z) + OFFSCREEN_MARGIN;
   }
 
-  private async loadModels(): Promise<void> {
-    const { phone, hand, moonMap, lensMap, screenMap } = await this.ctx.assets.loadAll({
-      phone: { url: '/models/phone.glb', type: 'gltf' },
-      hand: { url: '/models/hand.glb', type: 'gltf' },
-      moonMap: { url: '/textures/moon_1024.jpg', type: 'texture' },
-      lensMap: { url: '/textures/tgs1_1024.jpg', type: 'texture' },
-      screenMap: { url: '/textures/phoness.png', type: 'texture' },
-    });
+  private loadNear(selector: string, load: () => Promise<void>): void {
+    const target = document.querySelector(selector);
+    if (!target) return;
+    const run = () => void load().catch((error) => console.warn('Chapter illustration fallback:', error));
+    if (!('IntersectionObserver' in window)) { run(); return; }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { observer.disconnect(); run(); }
+    }, { rootMargin: '120% 0px' });
+    observer.observe(target);
+  }
 
+  private async loadMoon(): Promise<void> {
+    const moonMap = await this.ctx.assets.loadTexture('/textures/moon_1024.jpg');
     // Moon floating right of the hero copy, in natural grayscale (bright
     // moon) with a faint silver-white halo against the night sky.
     const moonInk = InkGlobe.toInk(moonMap, false);
@@ -505,6 +523,14 @@ export class HomeScene extends SceneBase {
     this.applyGlobePositions();
     for (const g of this.globes) this.scene.add(g.group);
 
+    document.body.classList.add('has-home-moon');
+  }
+
+  private async loadPhone(): Promise<void> {
+    const { phone, screenMap } = await this.ctx.assets.loadAll({
+      phone: { url: '/models/phone-home.glb', type: 'gltf' },
+      screenMap: { url: '/textures/phoness.png', type: 'texture' },
+    });
     // Normalize authored units: center the model and scale its longest axis
     // to a fixed world height so a replacement GLB drops in unchanged.
     const box = new THREE.Box3().setFromObject(phone.scene);
@@ -544,29 +570,29 @@ export class HomeScene extends SceneBase {
     screenPlane.position.z = (size.z * scale) / 2 + 0.012;
     this.phoneModel.add(screenPlane);
 
-    // Comic-book override: white cel-shaded hand with a black ink outline
-    // hull per mesh — the palm light still shades the cel bands when it
-    // ignites. Outline thickness is in hand-model units (× HAND_SCALE in
-    // world), so 0.002 ≈ 0.04 world units of ink.
-    const handMat = new THREE.MeshToonMaterial({
-      color: 0xffffff,
-      gradientMap: toonGradient(),
-      // Neutral emissive lift so the hand reads bright white instead of
-      // taking the scene's violet rim light as a lavender tint — kept low
-      // enough that the cel bands still shade the form.
-      emissive: 0x48484c,
+    document.body.classList.add('has-home-phone');
+  }
+
+  private async loadHand(): Promise<void> {
+    const hand = await this.ctx.assets.loadGLTF('/models/hand.glb');
+    const handMat = new THREE.MeshLambertMaterial({
+      color: 0xa49ebd,
+      // A restrained emissive floor retains detail in the unlit palm.
+      emissive: 0x10101c,
     });
     this.handMat = handMat;
-    const handMeshes: THREE.Mesh[] = [];
     hand.scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
         obj.material = handMat;
-        handMeshes.push(obj);
       }
     });
-    handMeshes.forEach((m) => addOutline(m, 0.002));
     this.handModel.add(hand.scene);
 
+    document.body.classList.add('has-home-lotus');
+  }
+
+  private async loadHeadset(): Promise<void> {
+    const lensMap = await this.ctx.assets.loadTexture('/textures/tgs1_1024.jpg');
     // Beat 2: procedurally built headset (see HeadsetModel.ts — no
     // third-party asset, no license). Normalized like the phone:
     // recentered, longest axis to a fixed world size.
@@ -577,161 +603,82 @@ export class HomeScene extends SceneBase {
     builtHeadset.scale.setScalar(vrScale);
     builtHeadset.position.copy(vrBox.getCenter(new THREE.Vector3())).multiplyScalar(-vrScale);
     this.headsetModel.add(builtHeadset);
+    document.body.classList.add('has-home-headset');
   }
 
   buildScrollTimeline(): void {
-    const scrub = this.ctx.scrub;
-
-    // Whole-page: cloud-field travel + dust drift. The backdrop's uScroll is
-    // in viewport-heights so paper.frag can slide the cloud banks 1:1 with
-    // the page; function-valued + invalidateOnRefresh so a resize (which
-    // changes the page's height in viewports) recomputes the end value.
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: document.body,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub,
-          invalidateOnRefresh: true,
-        },
-      })
-      .to(
-        this.backdrop.uniforms.uScroll,
-        {
-          value: () =>
-            (document.documentElement.scrollHeight - window.innerHeight) / window.innerHeight,
-        },
-        0,
-      )
-      .to(this.dust.uniforms.uScroll, { value: 1 }, 0);
-
-    // Hero exit — the moon zooms in first, then rises off the top of the
-    // frame while the stars rise/recede/defocus/fade, so both belong to the
-    // first beat only. The night sky and its clouds stay for the whole page
-    // (see the whole-page timeline above). Moon position/scale are derived
-    // from moonScale + globesExit in applyGlobePositions().
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: { trigger: '#games', start: 'top bottom', end: 'top 60%', scrub },
-      })
-      // Zoom and rise run together across the whole exit — the moon swells
-      // as it climbs, clearing the top edge right at the end. The beam
-      // waits for it (it starts in the games pin timeline below).
-      .to(this, { moonScale: MOON_SCALE_END, duration: 1, ease: 'sine.inOut' }, 0)
-      .to(this, { globesExit: 1, duration: 1, ease: 'sine.inOut' }, 0)
+    ScrollTrigger.addEventListener('refresh', this.syncLayout);
+    const scrub = .45;
+    gsap.to(this.backdrop.uniforms.uScroll, {
+      value: () => (document.documentElement.scrollHeight - window.innerHeight) / window.innerHeight,
+      ease: 'none', scrollTrigger: { trigger: document.body, start: 'top top', end: 'bottom bottom', scrub, invalidateOnRefresh: true },
+    });
+    gsap.timeline({ scrollTrigger: { trigger: '#games', start: 'top bottom', end: 'top 25%', scrub } })
+      .to(this, { moonScale: 1.6, globesExit: 1, duration: 1, ease: 'sine.inOut' }, 0)
       .to(this.stars.uniforms.uExit, { value: 1, duration: 1 }, 0)
-      // Dust takes over from the stars once the hero is left behind (0.3 is
-      // its authored resting opacity from the ParticleField config above).
-      .to(this.dust.uniforms.uOpacity, { value: 0.3, duration: 1 }, 0);
+      .to(this.dust.uniforms.uOpacity, { value: .18, duration: 1 }, 0);
+    const chapters = [
+      { id: '#games', enter: 'games', exit: 'gamesExit' },
+      { id: '#model-showcase', enter: 'phone', exit: 'phoneExit' },
+      { id: '#lotus', enter: 'lotus', exit: 'lotusExit' },
+    ] as const;
+    chapters.forEach(({ id, enter, exit }, index) => {
+      gsap.fromTo(this.motion, { [enter]: 0 }, {
+        [enter]: 1, ease: 'none',
+        scrollTrigger: { trigger: id, start: 'top 90%', end: 'top top', scrub, invalidateOnRefresh: true },
+      });
+      gsap.fromTo(this.motion, { [exit]: 0 }, {
+        [exit]: 1, ease: 'none',
+        scrollTrigger: { trigger: id, start: 'bottom bottom', end: 'bottom top', scrub, invalidateOnRefresh: true },
+      });
+      gsap.fromTo(this.chapter, { value: index }, {
+        value: index + 1, immediateRender: false, ease: 'sine.inOut',
+        scrollTrigger: { trigger: id, start: 'top bottom', end: 'top top', scrub },
+      });
+    });
+  }
 
-    // Beat 2 — with the moon gone, its beam extends down into frame first;
-    // then the headset descends through it and lands on the plate with its
-    // lens turned to the viewer's right. Everything lifts away again over
-    // the pin's last stretch.
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: { trigger: '#games', start: 'top top', end: 'bottom bottom', scrub },
-      })
-      // The beam appears only now — after the moon has left the screen —
-      // already on its final line, growing to fit.
-      .to(this.beamFade, { value: 1, duration: 0.06, ease: 'sine.out' }, 0)
-      .to(this, { beamGrow: 1, duration: 0.24, ease: 'sine.out' }, 0.02)
-      .fromTo(
-        this.headset.position,
-        { y: HEADSET_HIDDEN_Y },
-        { y: HEADSET_REST_Y, duration: 0.32, ease: 'power2.out' },
-        0.24,
-      )
-      // A half-turn of settle during the drop, ending lens-right.
-      .fromTo(
-        this.headset.rotation,
-        { y: HEADSET_REST_ROT + 2.2 },
-        { y: HEADSET_REST_ROT, duration: 0.34, ease: 'power2.out' },
-        0.24,
-      )
-      // Grass patch first, then pool + the actual light as the headset lands.
-      .to(this.grassMaterials, { opacity: 1, duration: 0.16, ease: 'sine.out' }, 0.42)
-      .to(this.poolMaterial, { opacity: 0.22, duration: 0.16, ease: 'sine.out' }, 0.5)
-      .to(this.beamSpot, { intensity: 750, duration: 0.16, ease: 'sine.out' }, 0.5)
-      // Hold the tableau, then strike the whole set before the showcase beat.
-      .to(this.beamFade, { value: 0, duration: 0.14, ease: 'sine.in' }, 0.8)
-      .to(this.poolMaterial, { opacity: 0, duration: 0.14, ease: 'sine.in' }, 0.8)
-      .to(this.grassMaterials, { opacity: 0, duration: 0.14, ease: 'sine.in' }, 0.8)
-      .to(this.beamSpot, { intensity: 0, duration: 0.14, ease: 'sine.in' }, 0.8)
-      .to(this.headset.position, { y: HEADSET_HIDDEN_Y, duration: 0.16, ease: 'power2.in' }, 0.82);
-
-    // Beat 3 — phone drops in from the top-right corner, joins the vapor
-    // track, and pulls up at middle-right with the screen turned slightly
-    // to the viewer's left. phoneRest eases it off the track's diagonal
-    // onto its resting height; phoneLift carries the corner entry.
-    // Endpoints are functions so a resize/rotation refresh recomputes them.
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: '#model-showcase',
-          start: 'top center',
-          end: 'bottom bottom',
-          scrub,
-          invalidateOnRefresh: true,
-        },
-      })
-      .fromTo(
-        this.phone.position,
-        { x: () => this.offscreenX() },
-        { x: () => PHONE_REST_X * this.posScale(), duration: 0.62, ease: 'power2.out' },
-        0,
-      )
-      .fromTo(this, { phoneLift: 2.5 }, { phoneLift: 0, duration: 0.32, ease: 'power2.out' }, 0)
-      // Sweep stays well under ±90° so the screen faces the viewer the whole
-      // ride — the back of the phone is never shown. Vertical motion is NOT
-      // tweened here: update() blends trackY(x) toward PHONE_REST_Y.
-      .fromTo(
-        this.phone.rotation,
-        { y: -0.7 },
-        { y: PHONE_REST_ROT, duration: 0.62, ease: 'power2.out' },
-        0,
-      )
-      .to(this, { phoneRest: 1, duration: 0.28, ease: 'sine.inOut' }, 0.38)
-      // Longer ramp than the old fade: the shards stagger themselves off
-      // this one value (each waits out its own uDelay slice), so the ramp
-      // needs room for the last arrivals.
-      .fromTo(this.vapor.uniforms.uReveal, { value: 0 }, { value: 1, duration: 0.34, ease: 'sine.out' }, 0)
-      .to(this.vapor.uniforms.uReveal, { value: 0, duration: 0.25, ease: 'sine.in' }, 0.75);
-
-    // After the pin releases, the resting phone rides up at scroll speed so
-    // it leaves the frame together with the section's text (full frustum
-    // height at PHONE_Z ≈ 3.84 world units per viewport of scroll).
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: '#model-showcase',
-          start: 'bottom bottom',
-          end: 'bottom top',
-          scrub,
-        },
-      })
-      .to(this, { phoneLift: 4 });
-
-    // Beat 4 — hand rises, palm light ignites, lotus blooms. Durations are
-    // fractions of the pinned scroll (timeline is 1 unit long).
-    gsap
-      .timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: { trigger: '#lotus', start: 'top 80%', end: 'bottom bottom', scrub },
-      })
-      .fromTo(this.hand.position, { y: HAND_HIDDEN_Y }, { y: HAND_RAISED_Y, duration: 0.32, ease: 'sine.out' }, 0)
-      .to(this.lotus, { glow: 1, duration: 0.28 }, 0.16)
-      .to(this.lotus, { bloom: 1, duration: 0.42 }, 0.4)
-      .to({}, { duration: 0.18 }, 0.82); // hold the bloom while the finale copy fades in
+  /** Poses are derived from progress, so reverse scrolling and resizing are deterministic. */
+  private poseChapters(): void {
+    const ease = (v: number) => { const t = THREE.MathUtils.clamp(v, 0, 1); return t * t * (3 - 2 * t); };
+    const { games, gamesExit, phone, phoneExit, lotus, lotusExit } = this.motion;
+    const arrived = ease(games / .85);
+    const exitY = this.halfWidthAt(HEADSET_Z) / this.ctx.rig.camera.aspect * 2;
+    const restY = this.stageY('games', this.mobile() ? 660 : 420, HEADSET_Z, this.headsetY());
+    const leaving = this.shortLayout() ? 0 : gamesExit * exitY;
+    this.headset.position.set(this.headsetX(), THREE.MathUtils.lerp(HEADSET_HIDDEN_Y, restY, arrived) + leaving, HEADSET_Z);
+    this.headset.rotation.y = HEADSET_REST_ROT + (1 - arrived) * .9;
+    this.headset.visible = games > .02 && gamesExit < 1;
+    const size = this.sizeScale();
+    const ratio = size / this.initialScale;
+    const surfaceY = restY + (SURFACE_Y - HEADSET_REST_Y) * size;
+    this.landing.scale.setScalar(ratio);
+    this.landing.position.set(this.headsetX() - this.initialAnchor * ratio, surfaceY - SURFACE_Y * ratio + leaving, HEADSET_Z * (1 - ratio));
+    this.landing.visible = games > .02 && gamesExit < 1;
+    const light = ease(games / .6) * (1 - ease(gamesExit / .6));
+    this.beamGrow = ease(games / .7);
+    this.beamFade.value = light * .32;
+    this.poolMaterial.opacity = light * .12;
+    this.grassMaterials.forEach((m) => { m.opacity = ease((games - .25) / .5) * (1 - gamesExit); });
+    this.beamSpot.intensity = light * 120;
+    this.beamTarget.set(this.headsetX(), surfaceY, HEADSET_Z);
+    const ride = ease(phone / .85);
+    this.phone.position.x = THREE.MathUtils.lerp(this.offscreenX(), this.phoneX(), ride);
+    this.phone.rotation.y = THREE.MathUtils.lerp(-.65, PHONE_REST_ROT, ride);
+    this.phone.rotation.z = (1 - ride) * -.16;
+    this.phoneRest = ease((phone - .3) / .55);
+    this.phoneLift = (1 - ease(phone / .55)) * 1.2 + (this.shortLayout() ? 0 : phoneExit * 4.5);
+    this.phone.visible = phone > .01 && phoneExit < 1;
+    this.vapor.uniforms.uReveal.value = ease(phone / .7) * (1 - ease(phoneExit));
+    this.vapor.group.visible = phone > .01 && phoneExit < 1;
+    this.hand.position.y = THREE.MathUtils.lerp(HAND_HIDDEN_Y, this.stageY('lotus', 635, HAND_Z, HAND_RAISED_Y), ease(lotus / .75)) + (this.shortLayout() ? 0 : lotusExit * 7);
+    this.hand.visible = lotus > .01 && lotusExit < 1;
+    this.lotus.glow = ease((lotus - .15) / .55);
+    this.lotus.bloom = ease((lotus - .35) / .65);
   }
 
   update(dt: number, elapsed: number, pointer: { x: number; y: number }): void {
+    this.poseChapters();
     // Liquid cursor for the hero nebula: smooth the pointer into shader uv
     // space (pointer y is screen-down, shader y is up), derive a smoothed
     // velocity from the smoothed position, and clamp swipe spikes.
@@ -767,7 +714,6 @@ export class HomeScene extends SceneBase {
     if (this.beamGrow > 0.002) {
       const startY = this.moonExitY(MOON_SCALE_END);
       this.beamStart.set(MOON_EXIT_X, startY, MOON_Z);
-      this.beamTarget.setX(HEADSET_X * this.posScale());
       this.beamTip
         .copy(this.beamTarget)
         .sub(this.beamStart)
@@ -789,7 +735,7 @@ export class HomeScene extends SceneBase {
     // entry/exit lift.
     const onTrack = trackY(this.phone.position.x);
     this.phone.position.y =
-      onTrack + (PHONE_REST_Y - onTrack) * this.phoneRest + this.phoneLift;
+      onTrack + (this.stageY('model-showcase', this.mobile() ? 665 : 420, PHONE_Z, this.phoneY()) - onTrack) * this.phoneRest + this.phoneLift;
 
     // Idle life on the inner nodes (scroll owns the wrappers).
     this.phoneModel.position.y = Math.sin(elapsed * 0.9) * 0.08;
@@ -807,7 +753,7 @@ export class HomeScene extends SceneBase {
     // the petals — the light sits above the palm).
     if (this.handMat) {
       const glow = THREE.MathUtils.clamp(this.lotus.glow, 0, 1);
-      this.handMat.color.copy(GLOW_TINT_BASE).lerp(GLOW_TINT_BLUE, glow * 0.65);
+      this.handMat.color.set(0x625e77).lerp(GLOW_TINT_BLUE, glow * 0.12);
     }
   }
 
@@ -816,9 +762,10 @@ export class HomeScene extends SceneBase {
     // Rig aspect is already updated (webgl.ts resizes the rig first), so
     // retarget the narrow-screen model trim from the fresh aspect.
     const sz = this.sizeScale();
-    this.hand.scale.setScalar(sz);
+    this.hand.scale.setScalar(this.mobile() ? .48 : .68);
     this.phoneModel.scale.setScalar(sz);
     this.headsetModel.scale.setScalar(sz);
     this.aimVaporFocus();
+    this.syncLayout();
   }
 }

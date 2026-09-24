@@ -5,31 +5,33 @@ import type { QualityProfile } from './Quality';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/**
- * Owns smooth scrolling (Lenis) and keeps GSAP's ScrollTrigger in sync with it.
- * The GSAP ticker is the single RAF loop for the whole app — Lenis, DOM
- * animations, and the WebGL render loop all hang off it.
- */
+/** One clock for smooth scrolling, DOM transitions, and the WebGL scene. */
 export class ScrollController {
-  readonly lenis: Lenis | null = null;
+  lenis: Lenis | null = null;
+  private readonly tick = (time: number) => this.lenis?.raf(time * 1000);
 
   constructor(quality: QualityProfile) {
-    // Respect reduced-motion: native scrolling, ScrollTrigger still works.
-    if (!quality.reducedMotion) {
-      this.lenis = new Lenis({
-        autoRaf: false,
-        lerp: 0.11,
-        wheelMultiplier: 1,
-      });
-      this.lenis.on('scroll', ScrollTrigger.update);
-      gsap.ticker.add((time) => this.lenis!.raf(time * 1000));
-      // Lenis drives scroll every frame; GSAP's lag smoothing would fight it.
-      gsap.ticker.lagSmoothing(0);
-    }
+    this.setSmoothing(!quality.reducedMotion);
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (event) => {
+      this.setSmoothing(!event.matches);
+      ScrollTrigger.refresh();
+    });
   }
 
-  /** Scrub value for scroll-driven timelines (instant under reduced motion). */
+  private setSmoothing(enabled: boolean): void {
+    if (this.lenis) {
+      gsap.ticker.remove(this.tick);
+      this.lenis.destroy();
+      this.lenis = null;
+    }
+    if (!enabled) return;
+    this.lenis = new Lenis({ autoRaf: false, lerp: .11, wheelMultiplier: 1, anchors: true });
+    this.lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(this.tick);
+    gsap.ticker.lagSmoothing(0);
+  }
+
   scrub(quality: QualityProfile): boolean | number {
-    return quality.reducedMotion ? true : 0.9;
+    return quality.reducedMotion ? true : .9;
   }
 }

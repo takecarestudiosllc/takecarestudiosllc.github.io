@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { toonGradient, addOutline } from './toon';
 
 /**
  * Procedural lotus flower that blooms under scroll control.
@@ -25,14 +24,14 @@ interface RingSpec {
 }
 
 const RINGS: RingSpec[] = [
-  { count: 8, radius: 0.16, length: 0.95, width: 0.62, closedTilt: -0.16, openTilt: 1.02, delay: 0.0,  color: 0xe87fb7 },
-  { count: 8, radius: 0.11, length: 0.82, width: 0.54, closedTilt: -0.1,  openTilt: 0.74, delay: 0.18, color: 0xf49fcb },
-  { count: 5, radius: 0.07, length: 0.66, width: 0.46, closedTilt: -0.05, openTilt: 0.45, delay: 0.36, color: 0xffc7e0 },
+  { count: 8, radius: 0.16, length: 0.95, width: 0.62, closedTilt: -0.16, openTilt: 1.02, delay: 0.0,  color: 0x62517c },
+  { count: 8, radius: 0.11, length: 0.82, width: 0.54, closedTilt: -0.1,  openTilt: 0.74, delay: 0.18, color: 0x86749c },
+  { count: 5, radius: 0.07, length: 0.66, width: 0.46, closedTilt: -0.05, openTilt: 0.45, delay: 0.36, color: 0xb7a4cd },
 ];
 
 /** Petal: a plane sculpted into a cupped teardrop, base at the origin, tip at +Y. */
 function makePetalGeometry(length: number, width: number): THREE.BufferGeometry {
-  const geo = new THREE.PlaneGeometry(1, 1, 6, 14).translate(0, 0.5, 0);
+  const geo = new THREE.PlaneGeometry(1, 1, 14, 24).translate(0, 0.5, 0);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x0 = pos.getX(i); // -0.5 … 0.5 across the petal
@@ -68,12 +67,8 @@ function makeGlowTexture(): THREE.Texture {
 
 const easeInOut = (t: number): number => t * t * (3 - 2 * t); // smoothstep
 
-/** Diffuse tint for the palm light's blue wash: white at rest → light blue
- *  when glowing. Tinting the diffuse (not the emissive) survives the white
- *  ceiling the scene lights push these materials against. (Shared with the
- *  hand via HomeScene.) */
-export const GLOW_TINT_BASE = new THREE.Color(0xffffff);
-export const GLOW_TINT_BLUE = new THREE.Color(0x8fb3e8);
+/** Shared cool light tint for the petals and palm. */
+export const GLOW_TINT_BLUE = new THREE.Color(0xaabde9);
 
 export class LotusFlower {
   readonly group = new THREE.Group();
@@ -88,21 +83,17 @@ export class LotusFlower {
   private sprite: THREE.Sprite;
   private heart: THREE.Mesh;
   /** Petal materials, tinted blue by the glow in update(). */
-  private petalMats: THREE.MeshToonMaterial[] = [];
+  private petalMats: THREE.MeshLambertMaterial[] = [];
 
   constructor() {
-    // Comic-book petals: white cel-shaded fill (ring.color is unused while
-    // this style is in) with a black ink outline hull per petal.
+    // Diffuse-only lavender petals keep a soft matte finish without specular glare.
     for (const ring of RINGS) {
       const geo = makePetalGeometry(ring.length, ring.width);
-      const mat = new THREE.MeshToonMaterial({
-        color: 0xffffff,
-        gradientMap: toonGradient(),
+      const mat = new THREE.MeshLambertMaterial({
+        color: ring.color,
         side: THREE.DoubleSide,
-        // Neutral emissive lift so the petals read bright white instead of
-        // taking the scene's violet rim light as a lavender tint — kept low
-        // enough that the cel bands still shade the form.
-        emissive: 0x48484c,
+        // Preserve a little detail on petals facing away from the key light.
+        emissive: 0x151020,
       });
       this.petalMats.push(mat);
       for (let i = 0; i < ring.count; i++) {
@@ -113,7 +104,6 @@ export class LotusFlower {
         pivot.position.z = ring.radius;
         const petal = new THREE.Mesh(geo, mat);
         pivot.add(petal);
-        addOutline(petal, 0.02);
         wrapper.add(pivot);
         this.head.add(wrapper);
         this.pivots.push({ pivot, ring, phase: i * 1.7 });
@@ -122,11 +112,10 @@ export class LotusFlower {
 
     this.heart = new THREE.Mesh(
       new THREE.SphereGeometry(0.13, 24, 16),
-      new THREE.MeshStandardMaterial({
+      new THREE.MeshLambertMaterial({
         color: 0xcfe4ff,
         emissive: 0x7fb3ff,
         emissiveIntensity: 0.7,
-        roughness: 0.4,
       }),
     );
     this.heart.position.y = 0.08;
@@ -166,17 +155,15 @@ export class LotusFlower {
     const emerge = easeInOut(THREE.MathUtils.clamp(bloom * 1.6, 0, 1));
     const headScale = 0.05 + 0.95 * emerge;
     this.head.scale.setScalar(headScale);
-    this.head.rotation.y = elapsed * 0.1; // slow ceremonial turn
+    this.head.rotation.y = elapsed * 0.045; // slow ceremonial turn
 
     const flicker = 1 + Math.sin(elapsed * 2.3) * 0.05 + Math.sin(elapsed * 5.1) * 0.03;
-    this.light.intensity = glow * 6 * flicker;
-    // The toon materials sit at their white ceiling under the scene lights,
-    // so the point light alone can't tint them — wash the diffuse color
-    // blue instead, breathing with the same flicker.
+    this.light.intensity = glow * .1 * flicker;
+    // Subtle reflected blue connects the petal palette to the central glow.
     const wash = glow * (0.75 + 0.25 * flicker);
-    for (const mat of this.petalMats) {
-      mat.color.copy(GLOW_TINT_BASE).lerp(GLOW_TINT_BLUE, wash);
-    }
+    this.petalMats.forEach((mat, index) => {
+      mat.color.set(RINGS[index].color).lerp(GLOW_TINT_BLUE, wash * .16);
+    });
     const spriteMat = this.sprite.material as THREE.SpriteMaterial;
     spriteMat.opacity = glow * 0.2 * (0.9 - 0.35 * bloom); // glow softens as petals take over
     const s = (0.6 + glow * 2.6 + bloom * 1.2) * flicker;

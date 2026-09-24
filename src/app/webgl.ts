@@ -25,6 +25,14 @@ export function bootWebGL(page: string, quality: QualityProfile, scrub: boolean 
     return;
   }
 
+  if (page === 'home') {
+    renderer.canvas.addEventListener('webglcontextlost', () => {
+      document.body.classList.add('home-context-lost');
+    });
+    renderer.canvas.addEventListener('webglcontextrestored', () => {
+      document.body.classList.remove('home-context-lost');
+    });
+  }
   scene.init();
   scene.buildScrollTimeline();
 
@@ -48,6 +56,7 @@ export function bootWebGL(page: string, quality: QualityProfile, scrub: boolean 
   // Single render loop on the shared GSAP ticker (same clock as Lenis/ScrollTrigger).
   const start = gsap.ticker.time;
   gsap.ticker.add((time, deltaMs) => {
+    if (document.hidden || (page === 'home' && !document.body.classList.contains('home-motion'))) return;
     const dt = Math.min(deltaMs / 1000, 1 / 20); // clamp tab-switch spikes
     rig.update(pointer, dt);
     scene.update(dt, time - start, pointer);

@@ -29,6 +29,10 @@ export class Renderer {
     });
     this.gl.setPixelRatio(quality.dpr);
     this.gl.setSize(window.innerWidth, window.innerHeight);
+    if (document.body.dataset.page === 'home') {
+      this.gl.toneMapping = THREE.ACESFilmicToneMapping;
+      this.gl.toneMappingExposure = 0.9;
+    }
     this.gl.outputColorSpace = THREE.LinearSRGBColorSpace; // no output transform — WYSIWYG colors
   }
 

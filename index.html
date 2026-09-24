@@ -1,83 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Take Care Studios</title>
-	<meta name="description" content="Take Care Studios LLC — an independent studio making VR games and mobile apps. Home of Six Seven VR and Touch Grass! VR Simulator.">
-	<meta name="author" content="Take Care Studios LLC">
-	<meta name="keywords" content="VR, virtual reality, mobile apps, Take Care Studios, Six Seven VR, Touch Grass VR">
-	<meta name="robots" content="index, follow">
-	<meta property="og:title" content="Take Care Studios">
-	<meta property="og:description" content="Independent studio making VR games and mobile apps.">
-	<meta property="og:type" content="website">
-	<meta property="og:image" content="/images/takecare_logoonly.png">
-	<link rel="icon" href="/images/air_icon.png">
-	<script type="module" src="/src/main.ts"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Take Care Studios — Giving Ideas Life</title>
+  <meta name="description" content="Take Care Studios is an independent developer creating thoughtful mobile apps and playful VR experiences. Discover Zhong, a new way to explore Chinese characters.">
+  <meta name="theme-color" content="#080b14">
+  <link rel="canonical" href="https://takecarestudiosllc.github.io/">
+  <meta property="og:title" content="Take Care Studios — Giving Ideas Life">
+  <meta property="og:description" content="Thoughtful mobile apps and playful VR experiences from an independent developer, made with care.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://takecarestudiosllc.github.io/">
+  <meta property="og:image" content="https://takecarestudiosllc.github.io/images/takecare_logoonly.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="/images/air_icon.png">
+  <link rel="apple-touch-icon" href="/images/air_icon.png">
+  <link rel="preload" href="/fonts/roboto-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Take Care Studios LLC","url":"https://takecarestudiosllc.github.io/","logo":"https://takecarestudiosllc.github.io/images/takecare_logoonly.png","description":"An independent developer making VR games and mobile apps."}</script>
+  <script type="module" src="/src/main.ts"></script>
 </head>
-
-<body data-page="home" data-theme="home">
-	<main>
-		<!-- Hero: important text lives in the DOM; the WebGL nebula is backdrop only -->
-		<section class="hero">
-			<h1 class="hero-title" data-split>Giving Ideas Life</h1>
-			<p class="hero-sub" data-hero-fade>
-				Take Care Studios LLC is an independent developer building
-				interactive VR games and mobile apps.
-			</p>
-			<div class="scroll-cue" data-hero-fade><span>Scroll</span></div>
-		</section>
-
-		<!-- Beat 2: pinned viewport — in WebGL a headset descends and lands on a
-		     surface under a moonbeam while this copy sits top-left. -->
-		<section class="pin-section pin-section--games" id="games" aria-labelledby="games-title">
-			<div class="pin-viewport">
-				<div class="showcase-copy">
-					<p class="hero-eyebrow" data-reveal>VR Games</p>
-					<h2 class="section-title" id="games-title" data-reveal>Worlds you can step into</h2>
-					<p class="showcase-sub" data-reveal>
-						Making VR games — small, handcrafted worlds you put on
-						like a pair of glasses.
-						Touch Grass
-						in virtual reality so you don&rsquo;t have to in real life.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<!-- Beat 3: pinned viewport — the 3D model crosses right-to-left in WebGL
-		     behind this copy while the section scrolls through. -->
-		<section class="pin-section pin-section--showcase" id="model-showcase" aria-labelledby="showcase-title">
-			<div class="pin-viewport">
-				<div class="showcase-copy">
-					<p class="hero-eyebrow" data-reveal>Mobile Apps</p>
-					<h2 class="section-title" id="showcase-title" data-reveal>Apps that fit in your pocket</h2>
-					<p class="showcase-sub" data-reveal>
-						Building mobile apps for everyday use. Learn Chinese
-						with the node based visual character learning app
-						<a href="/zhong.html">Zhong</a>.
-					</p>
-				</div>
-			</div>
-		</section>
-
-		<!-- Beat 4: pinned finale — a hand rises from below in WebGL, the light in
-		     its palm blooms into a lotus, then this text appears. -->
-		<section class="pin-section pin-section--lotus" id="lotus" aria-labelledby="lotus-title">
-			<div class="pin-viewport">
-				<div class="finale-copy" data-finale>
-					<h2 class="finale-title" id="lotus-title">Something new is growing</h2>
-				</div>
-			</div>
-		</section>
-	</main>
-
-	<footer class="site-footer">
-		<nav aria-label="Footer">
-			<a href="/zhong.html">Zhong</a>
-			<a href="/siteprivacy.html">Website Privacy</a>
-		</nav>
-		<p class="legal-note">&copy; 2026 Take Care Studios LLC</p>
-	</footer>
+<body data-page="home" data-theme="home" class="home">
+  <a class="home-skip" href="#main">Skip to content</a>
+  <header class="home-header">
+    <a class="home-brand" href="#top" aria-label="Take Care Studios home"><span class="home-brand__symbol" aria-hidden="true">✳︎</span><span>take care<span class="home-brand__sub">STUDIOS</span></span></a>
+    <nav aria-label="Main navigation" class="home-nav"><a href="#games">Games</a><a href="#model-showcase">Apps</a><a href="#lotus">Studio</a></nav>
+    <div class="home-progress" aria-hidden="true"><span></span></div>
+  </header>
+  <main id="main" tabindex="-1">
+    <section class="home-hero" id="top" aria-labelledby="home-title" data-chapter="01">
+      <div class="home-orbit" aria-hidden="true"><span class="home-orbit__label">A little curiosity.<br>Infinite possibility.</span><span class="home-orbit__dot"></span></div>
+      <img class="home-moon-fallback home-fallback" src="/textures/moon_1024.jpg" width="300" height="300" alt="" fetchpriority="high">
+      <div class="home-hero__copy">
+        <p class="home-eyebrow" data-home-intro><span class="home-status"></span> Independent by nature</p>
+        <h1 id="home-title" aria-label="Giving Ideas Life"><span class="home-title-line"><span>Giving Ideas</span></span><span class="home-title-line"><span class="home-title-accent">Life<span class="home-title-period">.</span></span></span></h1>
+        <p class="home-description" data-home-intro>Playful worlds. Everyday discoveries.<br>VR games and mobile apps<br class="home-desktop-break"> that bring a little possibility to life.</p>
+        <div class="home-actions" data-home-intro><a class="home-button home-button--primary" href="#games">Explore the work <span aria-hidden="true">↘</span></a><a class="home-text-link" href="/zhong.html">Meet Zhong <span aria-hidden="true">↗</span></a></div>
+      </div>
+      <div class="home-hero__bottom"><a href="#games" class="home-scroll"><span class="home-scroll__line" aria-hidden="true"></span> Scroll to explore</a><span class="home-index">01 — 04 <span>IMAGINATION, IN MOTION</span></span></div>
+    </section>
+    <section class="home-chapter home-chapter--games pin-section" id="games" aria-labelledby="games-title" data-chapter="02">
+      <div class="home-stage">
+        <div class="home-stage__grid" aria-hidden="true"></div>
+        <div class="home-chapter__copy">
+          <p class="home-eyebrow" data-home-reveal><span class="home-chapter-number">01 /</span> Worlds to step into</p>
+          <h2 class="home-heading" id="games-title" data-home-reveal>A different<br>kind of <em>escape.</em></h2>
+          <p class="home-description" data-home-reveal>A little strange. A lot of fun.<br>Touch grass in virtual reality<br class="home-desktop-break"> so you don’t have to in real life.</p>
+          <!-- VR product cards are intentionally omitted from the homepage for now. -->
+        </div>
+        <div class="home-art-fallback home-fallback" aria-hidden="true"><svg viewBox="0 0 320 220" fill="none"><rect x="38" y="63" width="244" height="115" rx="45" fill="#191c2c" stroke="#aba4e8" stroke-width="2"/><path d="M65 70C65 5 255 5 255 70" stroke="#918cb7" stroke-width="12"/><ellipse cx="112" cy="122" rx="43" ry="34" fill="#474363"/><ellipse cx="209" cy="122" rx="43" ry="34" fill="#474363"/><ellipse cx="112" cy="122" rx="29" ry="24" fill="#b0a8f0"/><ellipse cx="209" cy="122" rx="29" ry="24" fill="#b0a8f0"/></svg></div>
+        <div class="home-stage-caption" aria-hidden="true"><span>BEYOND THE SCREEN</span><span>02 / 04</span></div>
+      </div>
+    </section>
+    <section class="home-chapter home-chapter--apps pin-section" id="model-showcase" aria-labelledby="showcase-title" data-chapter="03">
+      <div class="home-stage">
+        <div class="home-chapter__copy">
+          <p class="home-eyebrow" data-home-reveal><span class="home-chapter-number">02 /</span> A world in your pocket</p>
+          <h2 class="home-heading" id="showcase-title" data-home-reveal>Small screen.<br><em>New perspectives.</em></h2>
+          <p class="home-description" data-home-reveal>Thoughtful tools for curious minds.<br>Made to turn everyday moments<br class="home-desktop-break"> into something worth exploring.</p>
+          <div class="home-app" data-home-reveal>
+            <div class="home-app__identity"><img src="/images/zhong-logo.png" alt="" width="42" height="42" loading="lazy"><div><h3>Zhong</h3><p>See Chinese differently.</p></div><span class="home-badge">OUT NOW</span></div>
+            <p>Discover the connections between Chinese characters, their components, and the words they create.</p>
+            <a class="home-button home-button--jade" href="/zhong.html">Explore Zhong <span aria-hidden="true">↗</span></a><span class="home-platforms">FOR IPHONE &amp; ANDROID</span>
+          </div>
+        </div>
+        <div class="home-phone-fallback home-fallback" aria-hidden="true"><img src="/textures/phoness.png" width="1080" height="1920" alt="" loading="lazy"></div>
+        <div class="home-stage-caption" aria-hidden="true"><span>CONNECT THE POSSIBILITIES</span><span>03 / 04</span></div>
+      </div>
+    </section>
+    <section class="home-chapter home-chapter--studio pin-section" id="lotus" aria-labelledby="lotus-title" data-chapter="04">
+      <div class="home-stage">
+        <div class="home-finale__copy">
+          <p class="home-eyebrow" data-home-reveal><span class="home-chapter-number">03 /</span> Made with care</p>
+          <h2 class="home-heading" id="lotus-title" data-home-reveal>Good things<br><em>start with a little care.</em></h2>
+          <p class="home-description" data-home-reveal>An independent developer following curiosity,<br class="home-desktop-break"> building playful worlds, and giving<br class="home-desktop-break"> new ideas room to grow.</p>
+          <a class="home-text-link" href="/support.html" data-home-reveal>Zhong support <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="home-lotus-fallback home-fallback" aria-hidden="true"><svg viewBox="0 0 320 220" fill="none"><g stroke="#c4b5fd" stroke-width="1.5" fill="#2f2947"><path d="M160 174C83 126 125 39 160 15C197 56 234 125 160 174Z"/><path d="M160 174C80 184 42 100 49 62C99 60 160 96 160 174Z"/><path d="M160 174C240 184 278 100 271 62C221 60 160 96 160 174Z"/><path d="M160 174C94 214 32 169 14 134C70 101 132 132 160 174Z"/><path d="M160 174C226 214 288 169 306 134C250 101 188 132 160 174Z"/></g></svg></div>
+        <div class="home-stage-caption" aria-hidden="true"><span>ALWAYS GROWING</span><span>04 / 04</span></div>
+      </div>
+    </section>
+  </main>
+  <footer class="home-footer">
+    <a class="home-footer__wordmark" href="#top">take care<span>↗</span></a>
+    <div class="home-footer__bottom"><p>© 2026 Take Care Studios LLC</p><nav aria-label="Footer"><a href="/zhong.html">Zhong</a><a href="/support.html">Zhong support</a><a href="/siteprivacy.html">Privacy</a></nav><a href="#top" class="home-back-top">Back to top ↑</a></div>
+    <details class="home-credits"><summary>Creative credits</summary><p>Phone: <a href="https://sketchfab.com/3d-models/e3f7be1f4f1c4142bba557df43858bd7">“Smartphone 3” by timurkoba92</a>, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Materials modified; unused data removed and geometry compressed. Hand: <a href="https://github.com/immersive-web/webxr-input-profiles">W3C immersive-web input profiles</a>, Apache-2.0. Moon imagery: NASA / LROC.</p></details>
+  </footer>
 </body>
 </html>

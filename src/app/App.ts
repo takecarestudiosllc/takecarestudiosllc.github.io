@@ -1,5 +1,6 @@
 import { detectQuality, supportsWebGL } from './Quality';
 import { ScrollController } from './ScrollController';
+import { initHomeAnimations } from '../ui/homeAnimations';
 import { initDomAnimations } from '../ui/domAnimations';
 import { initVideoEmbeds } from '../ui/videoEmbeds';
 import { initContactForms } from '../ui/contactForm';
@@ -19,16 +20,31 @@ export class App {
     const quality = detectQuality();
     const scroll = new ScrollController(quality);
 
-    initDomAnimations(quality);
+    if (page === 'home') initHomeAnimations();
+    else initDomAnimations(quality);
     initVideoEmbeds();
     initContactForms();
 
-    if (WEBGL_PAGES.has(page) && supportsWebGL()) {
-      // Dynamic import keeps Three.js out of the shared bundle.
+    const canRender = WEBGL_PAGES.has(page) && supportsWebGL();
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let booted = false;
+    const boot = () => {
+      if (!canRender || booted || (page === 'home' && motion.matches)) return;
+      booted = true;
+      const activeQuality = detectQuality();
+      if (page === 'home') activeQuality.dpr = Math.min(activeQuality.dpr, 1.5);
       import('./webgl')
-        .then(({ bootWebGL }) => bootWebGL(page, quality, scroll.scrub(quality)))
-        .catch((err) => console.error('WebGL layer failed to start:', err));
+        .then(({ bootWebGL }) => bootWebGL(page, activeQuality, scroll.scrub(activeQuality)))
+        .catch((err) => {
+          document.body.classList.remove('home-motion');
+          console.error('WebGL layer failed to start:', err);
+        });
+    };
+    boot();
+    if (page === 'home') {
+      motion.addEventListener('change', boot);
+      if (!canRender) document.body.classList.remove('home-motion');
     }
-    // Without WebGL the CSS fallback backgrounds carry the look.
+    // Home reduced motion and WebGL fallback retain all four illustrations in normal flow.
   }
 }

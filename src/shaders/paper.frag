@@ -1,74 +1,43 @@
-// Home page backdrop: a deep night sky with slow white cloud banks that
-// persists down the whole page. The cloud field is anchored to the page, not
-// the screen: uScroll (viewports scrolled) slides the pattern so the banks
-// ride up with the content as you scroll. uClouds can still cross-fade the
-// field to the gunmetal page gray (uColorA/B) but currently holds at 1.
-// Needs the shared noise chunk (fbm) prepended by src/shaders/index.ts.
+// Restrained atmosphere: layered parallax and chapter lighting, not bright clouds behind copy.
 varying vec2 vUv;
-
 uniform float uTime;
-uniform float uScroll;   // page scroll in viewport-heights (uv y units)
+uniform float uScroll;
 uniform float uAspect;
+uniform float uClouds;
+uniform float uChapter;
+uniform float uDetail;
+uniform vec2 uMouse;
+uniform vec2 uMouseVel;
 uniform vec2 uPointer;
-uniform vec3 uColorA;    // page white
-uniform vec3 uColorB;    // faint corner wash so the field isn't sterile
-uniform vec3 uColorC;    // unused (nebula color comes from the blue ramp below)
-uniform float uClouds;   // hero-exit fade for the night sky + clouds
-uniform vec2 uMouse;     // smoothed pointer, aspect-corrected uv space
-uniform vec2 uMouseVel;  // smoothed pointer velocity (uv units / s, clamped)
-
+uniform vec3 uColorA;
+uniform vec3 uColorB;
+uniform vec3 uColorC;
 void main() {
-  vec2 uv = (vUv - 0.5) * vec2(uAspect, 1.0);
-  float wash = smoothstep(0.55, 1.25, length(uv));
-  vec3 col = mix(uColorA, uColorB, wash * 0.6);
-  // Night sky under the hero: deep navy, corners a touch lighter so the
-  // field isn't flat. Cross-faded with the paper white by the same uClouds
-  // that fades the cloud banks.
-  vec3 night = mix(vec3(0.016, 0.04, 0.11), vec3(0.045, 0.085, 0.19), wash);
-  col = mix(col, night, uClouds);
-
-  if (uClouds > 0.003) {
-    // Liquid distortion around the cursor (hero only — uClouds gates it):
-    // pixels near the pointer get dragged along the stroke, swirled around
-    // it, and rippled by rings breathing outward. It all warps the uv the
-    // nebula samples, so the clouds smear like ink stirred in water.
-    // Pin the cloud field to the page: shift the sampled coordinate down by
-    // the scrolled distance so the banks travel up the screen at exactly
-    // page-scroll speed (uv y spans one viewport, so the offset is 1:1).
-    // The cursor distortion below stays in screen space on purpose.
-    vec2 duv = uv - vec2(0.0, uScroll);
+  vec2 uv = (vUv - .5) * vec2(uAspect, 1.0);
+  float apps = smoothstep(1.0, 2.0, uChapter) * (1.0 - smoothstep(2.0, 3.0, uChapter));
+  vec3 violet = vec3(.18, .13, .32);
+  vec3 jade = vec3(.06, .24, .21);
+  vec3 tint = mix(violet, jade, apps);
+  vec2 center = vec2(.36 * uAspect, -.03 + .07 * sin(uChapter * 1.5));
+  float glow = exp(-length((uv - center) * vec2(.85, 1.2)) * 3.0);
+  vec3 col = vec3(.025, .034, .055) + tint * glow * .48;
+  vec2 p = uv * 1.7 - vec2(0., uScroll * .17) + vec2(uTime * .009, 0.);
+  float cloud;
+  if (uDetail > .5) {
     vec2 d = uv - uMouse;
-    float r = length(d);
-    float influence = exp(-r * r * 18.0) * uClouds;
-    vec2 swirl = vec2(-d.y, d.x) * length(uMouseVel) * 0.25;
-    duv -= (uMouseVel * 0.35 + swirl) * influence;
-    duv -= (d / max(r, 0.001)) * sin(r * 30.0 - uTime * 3.0) * 0.015 * influence;
-
-    // Domain-warped fbm: one fbm pair bends the lookup of a second, which
-    // turns blobby noise into wispy nebula filaments. Drifts slowly; the
-    // pointer nudges it for a touch of parallax.
-    // Higher frequency = several distributed banks on screen from frame one
-    // (at lower frequency a single noise blob could own one side for
-    // minutes). The uTime advection slides the whole pattern leftward fast
-    // enough to feel alive — a bank crosses the screen in under a minute.
-    vec2 p = duv * 2.2 + vec2(uTime * 0.08, 0.0) + uPointer * 0.06;
-    vec2 q = vec2(
-      fbm(p + vec2(0.0, uTime * 0.06)),
-      fbm(p + vec2(5.2, 1.3) - uTime * 0.04)
-    );
-    float n = fbm(p + 1.6 * q);
-    // Low threshold, long ramp: broad connected cloud banks across the whole
-    // field rather than sparse islands. The hero copy's white halo carries
-    // legibility, so no center clearing is carved out.
-    float nebula = smoothstep(0.32, 0.8, n);
-    // Moonlit clouds: a cosine wave cycles white → light blue → white,
-    // drifting with time and swirling with the same warp field that shapes
-    // the clouds, so the bands follow the filaments instead of sitting in
-    // flat stripes.
-    float shade = 0.5 + 0.5 * cos(6.28318 * (uv.x * 0.12 + q.x * 0.3 + uTime * 0.02));
-    vec3 cloud = mix(vec3(0.62, 0.76, 0.94), vec3(1.0), shade);
-    col = mix(col, cloud, nebula * 0.55 * uClouds);
+    p -= uMouseVel * exp(-dot(d,d) * 6.) * .08;
+    float warp = fbm(p + vec2(0., uTime * .007));
+    cloud = fbm(p + warp * 1.25);
+  } else {
+    // Low-tier devices skip every FBM octave, preserving the lighting and models.
+    cloud = .5 + .2 * sin(p.x * 1.3 + sin(p.y * 2.1)) * cos(p.y * 1.5);
   }
-
-  gl_FragColor = vec4(col, 1.0);
+  float veil = smoothstep(.38, .8, cloud);
+  float right = smoothstep(-.5, .7, uv.x);
+  col += tint * veil * (.16 + right * .22) * uClouds;
+  // A broad arc carries moonlight across the chapter changes.
+  float arc = exp(-abs(length((uv - vec2(.4,-.5)) * vec2(.7,1.)) - .7) * 22.);
+  col += tint * arc * .07;
+  col *= 1. - .35 * smoothstep(.35, 1.1, length(vUv - .5));
+  gl_FragColor = vec4(col, 1.);
 }

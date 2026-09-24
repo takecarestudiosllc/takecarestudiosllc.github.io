@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { addOutline } from './toon';
 
 /**
  * Procedurally built VR headset — primitives only, so the site carries no
  * third-party model license. Style matches the other beats: gunmetal body,
- * black ink outlines, and lenses that glow with the Touch Grass art.
+ * soft reflections, and lenses that glow with the Touch Grass art.
  *
  * Local orientation: the sealed visor front faces +z; the wearer side (face
  * cushion + lenses) faces -z; straps arc back over -z. Roughly 2.3 × 1.5 ×
@@ -144,8 +143,6 @@ export function buildHeadset(lensMap: THREE.Texture): THREE.Group {
 
   for (const mesh of outlined) {
     group.add(mesh);
-    // ~0.04 world units of ink once the caller's normalization (~×1.9) runs.
-    addOutline(mesh, 0.022);
   }
   return group;
 }
