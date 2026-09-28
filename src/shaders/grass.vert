@@ -7,6 +7,8 @@ attribute float aSeed;    // per-blade random in [0, 1]
 
 uniform float uTime;
 uniform float uWind;      // sway amplitude
+uniform vec2 uTouch;      // interaction position on the ground, world XZ
+uniform float uTouchStrength;
 
 varying float vHeight;    // 0 at root, 1 at tip
 varying float vSeed;
@@ -27,6 +29,13 @@ void main() {
   float w = sin(uTime * 1.6 + aOffset.x * 0.9 + aOffset.z * 0.7 + aSeed * 6.2831);
   p.x += w * bend;
   p.z += w * bend * 0.5;
+
+  vec2 away = aOffset.xz - uTouch;
+  float distanceToTouch = length(away);
+  float touch = (1.0 - smoothstep(0.0, 2.7, distanceToTouch)) * uTouchStrength;
+  vec2 direction = away / max(distanceToTouch, 0.01);
+  p.xz += direction * touch * vHeight * vHeight * 0.75;
+  p.y -= touch * vHeight * vHeight * 0.16;
 
   vec4 mv = modelViewMatrix * vec4(p + aOffset, 1.0);
   vDepth = -mv.z;

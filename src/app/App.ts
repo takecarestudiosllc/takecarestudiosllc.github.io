@@ -1,6 +1,7 @@
 import { detectQuality, supportsWebGL } from './Quality';
 import { ScrollController } from './ScrollController';
 import { initHomeAnimations } from '../ui/homeAnimations';
+import { initTouchGrassAnimations } from '../ui/touchGrassAnimations';
 import { initDomAnimations } from '../ui/domAnimations';
 import { initVideoEmbeds } from '../ui/videoEmbeds';
 import { initContactForms } from '../ui/contactForm';
@@ -21,6 +22,7 @@ export class App {
     const scroll = new ScrollController(quality);
 
     if (page === 'home') initHomeAnimations();
+    else if (page === 'touchgrass') initTouchGrassAnimations();
     else initDomAnimations(quality);
     initVideoEmbeds();
     initContactForms();
@@ -29,10 +31,11 @@ export class App {
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let booted = false;
     const boot = () => {
-      if (!canRender || booted || (page === 'home' && motion.matches)) return;
+      if (!canRender || booted || ((page === 'home' || page === 'touchgrass') && motion.matches)) return;
       booted = true;
       const activeQuality = detectQuality();
       if (page === 'home') activeQuality.dpr = Math.min(activeQuality.dpr, 1.5);
+      if (page === 'touchgrass') activeQuality.dpr = Math.min(activeQuality.dpr, activeQuality.touch ? 1.25 : 1.5);
       import('./webgl')
         .then(({ bootWebGL }) => bootWebGL(page, activeQuality, scroll.scrub(activeQuality)))
         .catch((err) => {
@@ -45,6 +48,7 @@ export class App {
       motion.addEventListener('change', boot);
       if (!canRender) document.body.classList.remove('home-motion');
     }
-    // Home reduced motion and WebGL fallback retain all four illustrations in normal flow.
+    if (page === 'touchgrass') motion.addEventListener('change', boot);
+    // Reduced-motion and WebGL fallbacks retain illustrations in normal flow.
   }
 }

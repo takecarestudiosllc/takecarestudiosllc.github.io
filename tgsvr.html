@@ -1,68 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Touch Grass VR Simulator</title>
-	<meta name="description" content="Touch Grass! VR Simulator — finally, a way to touch grass without going outside. A cozy VR meadow by Take Care Studios. Available on SteamVR and Meta Quest.">
-	<meta name="author" content="Take Care Studios LLC">
-	<meta name="keywords" content="VR, virtual reality, Touch Grass VR">
-	<meta name="robots" content="index, follow">
-	<meta property="og:title" content="Touch Grass! VR Simulator">
-	<meta property="og:description" content="Finally, a way to touch grass without going outside.">
-	<meta property="og:type" content="website">
-	<meta property="og:image" content="/images/mainimage1.png">
-	<link rel="icon" href="/images/icon.png">
-	<script type="module" src="/src/main.ts"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch Grass! VR Simulator — The outdoors, indoors.</title>
+  <meta name="description" content="Finally, touch grass without going outside. Step into a playful VR meadow, take a breather, and see how much grass you can touch. On Steam and Meta Quest.">
+  <meta name="theme-color" content="#eff2df">
+  <link rel="canonical" href="https://takecarestudiosllc.github.io/tgsvr.html">
+  <meta property="og:title" content="Touch Grass! VR Simulator">
+  <meta property="og:description" content="The outdoors, indoors. Finally, touch grass without going outside.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://takecarestudiosllc.github.io/tgsvr.html">
+  <meta property="og:image" content="https://takecarestudiosllc.github.io/images/touchgrass-social.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Touch Grass! VR Simulator — the outdoors, indoors. Available on Steam and Meta Quest.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Touch Grass! VR Simulator">
+  <meta name="twitter:description" content="Finally, touch grass without going outside.">
+  <meta name="twitter:image" content="https://takecarestudiosllc.github.io/images/touchgrass-social.jpg">
+  <link rel="icon" href="/images/icon.png">
+  <link rel="preload" href="/fonts/roboto-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Touch Grass! VR Simulator","url":"https://takecarestudiosllc.github.io/tgsvr.html","image":"https://takecarestudiosllc.github.io/images/touchgrass-social.jpg","description":"A playful VR experience for touching grass without going outside.","gamePlatform":["SteamVR","Meta Quest"],"genre":["Simulation","Casual"]}</script>
+  <script type="module" src="/src/main.ts"></script>
 </head>
-
-<body data-page="touchgrass" data-theme="touchgrass">
-	<main>
-		<section class="hero">
-			<p class="hero-eyebrow" data-hero-fade>Take Care Studios LLC presents</p>
-			<h1 class="hero-title hero-title-art" data-hero-fade data-parallax="0.08">
-				<img src="/images/logo.png" alt="Touch Grass! VR Simulator"
-					width="1280" height="720" fetchpriority="high">
-			</h1>
-			<div class="scroll-cue" data-hero-fade><span>Scroll</span></div>
-		</section>
-
-		<section class="section" id="trailer" aria-label="Trailer">
-			<div class="glass section-inner" data-reveal>
-				<div class="video-embed"
-					data-video-id="XKQj4hICF3s"
-					data-video-title="Touch Grass! VR Simulator — Official Trailer"
-					data-poster="/images/mainimage1.png">
-					<noscript>
-						<iframe src="https://www.youtube-nocookie.com/embed/XKQj4hICF3s" title="Touch Grass! VR Simulator — Official Trailer" allowfullscreen></iframe>
-					</noscript>
-				</div>
-				<p class="section-copy">
-					Touch Grass VR Simulator is a VR experience that lets you reconnect with nature
-					without leaving your room, breaking a sweat, or making eye contact with another
-					human. Experience hyperrealistic grass, peaceful skies, and zero chance of bug
-					bites or allergic reactions. Because going outside is cringe.
-				</p>
-			</div>
-		</section>
-
-		<section class="section" aria-labelledby="platforms-tg">
-			<div class="glass section-inner section-inner--centered" data-reveal>
-				<h2 id="platforms-tg">Available on</h2>
-				<div class="chips">
-					<a class="chip chip--link" href="https://store.steampowered.com/app/3105020/Touch_Grass_VR_Simulator/" target="_blank" rel="noopener">SteamVR</a>
-					<a class="chip chip--link" href="https://www.meta.com/experiences/touch-grass-vr-simulator/8100957183318215/" target="_blank" rel="noopener">Meta Quest</a>
-				</div>
-			</div>
-		</section>
-	</main>
-
-	<footer class="site-footer">
-		<nav aria-label="Footer">
-			<a href="/tgsvrprivacypolicy.html">Privacy Policy</a>
-			<a href="/tgsvrtermsofservice.html">Terms of Service</a>
-		</nav>
-		<p class="legal-note"><a href="/index.html">&copy; 2026 Take Care Studios LLC</a></p>
-	</footer>
+<body data-page="touchgrass" data-theme="touchgrass" class="tg">
+  <a class="tg-skip" href="#main">Skip to content</a>
+  <main id="main" tabindex="-1">
+    <section class="tg-hero" id="top" aria-labelledby="tg-title">
+      <div class="tg-meadow-fallback" aria-hidden="true"></div>
+      <div class="tg-hero-copy">
+        <p class="tg-eyebrow" data-tg-intro><span class="tg-dot" aria-hidden="true"></span> A deeply unnecessary escape</p>
+        <h1 class="tg-logo" id="tg-title" data-tg-intro><img src="/images/logo.png" alt="Touch Grass! VR Simulator" width="1280" height="720" fetchpriority="high"></h1>
+        <p class="tg-hero-line" data-tg-intro>Finally, touch grass.<br><em>Without going outside.</em></p>
+        <p class="tg-hero-description" data-tg-intro>A little nature. A little nonsense.<br>Your own patch of peace, in virtual reality.</p>
+        <div class="tg-actions" data-tg-intro>
+          <a class="tg-button tg-button--dark" href="https://store.steampowered.com/app/3105020/Touch_Grass_VR_Simulator/">Get on Steam <span aria-hidden="true">↗</span></a>
+          <a class="tg-button tg-button--light" href="https://www.meta.com/experiences/touch-grass-vr-simulator/8100957183318215/">Get on Meta Quest <span aria-hidden="true">↗</span></a>
+        </div>
+        <a class="tg-trailer-link" href="#trailer" data-tg-intro><span aria-hidden="true">▷</span> Watch the trailer</a>
+      </div>
+    </section>
+    <div class="tg-field-note"><span>Fresh air sold separately.</span><span aria-hidden="true">✳</span><span>Made for a little time out.</span></div>
+    <section class="tg-experience tg-section" id="experience" aria-labelledby="experience-title">
+      <div class="tg-section-top"><p class="tg-eyebrow">01 / The experience</p><span class="tg-side-note">LESS SCROLLING. MORE STROLLING.</span></div>
+      <div class="tg-feature">
+        <div class="tg-feature-copy" data-tg-reveal>
+          <h2 id="experience-title">Outside is<br>an <em>inside job.</em></h2>
+          <p>Leave the room. Figuratively. Step into a green little world of swaying grass, quiet skies, and absolutely no awkward small talk.</p>
+          <p>Reach down. Run your hands through the grass. Take a moment that doesn’t need to be productive.</p>
+          <span class="tg-copy-note"><span aria-hidden="true">↳</span> Yes, this is the whole idea.</span>
+        </div>
+        <figure class="tg-photo tg-photo--hands" data-tg-reveal><img src="/textures/tgs1_1024.jpg" alt="Two virtual hands held above bright grass in a wooded clearing in Touch Grass VR" width="1024" height="576" loading="lazy" decoding="async"><figcaption><span>01 — REACH OUT. TOUCH GRASS.</span><span>In-game capture</span></figcaption></figure>
+      </div>
+      <div class="tg-feature tg-feature--reverse">
+        <div class="tg-feature-copy" data-tg-reveal>
+          <p class="tg-eyebrow">A very low-stakes adventure</p>
+          <h2>Do less.<br><em>Enjoy the view.</em></h2>
+          <p>Find a little calm among the trees. Or make a completely unnecessary challenge of it: the grass-touching minigame counts each touch.</p>
+          <p>How much grass is enough grass?<br>Only one way to find out.</p>
+          <a class="tg-text-link" href="#trailer">See it in motion <span aria-hidden="true">↗</span></a>
+        </div>
+        <figure class="tg-photo tg-photo--forest" data-tg-reveal><img src="/textures/tgs2_1024.jpg" alt="Sunlit grass, small flowers, trees, and rocky cliffs in the game's forest meadow" width="1024" height="576" loading="lazy" decoding="async"><figcaption><span>02 — A LITTLE ROOM TO BREATHE.</span><span>In-game capture</span></figcaption></figure>
+      </div>
+      <div class="tg-small-joys" data-tg-reveal>
+        <div><span aria-hidden="true">↟</span><h3>Your own little outdoors.</h3><p>A virtual clearing, without the commute.</p></div>
+        <div><span aria-hidden="true">✳</span><h3>Make every touch count.</h3><p>A minigame for the committed grass toucher.</p></div>
+        <div><span aria-hidden="true">☼</span><h3>Zero real mosquitoes.</h3><p>All the greenery. None of the itching.</p></div>
+      </div>
+    </section>
+    <section class="tg-trailer tg-section" id="trailer" aria-labelledby="trailer-title">
+      <div class="tg-section-top"><p class="tg-eyebrow">02 / A breath of virtual air</p><span class="tg-side-note">THE OFFICIAL TRAILER</span></div>
+      <div class="tg-trailer-heading" data-tg-reveal><h2 id="trailer-title">See what all the<br><em>grass is about.</em></h2><p>A small glimpse of your<br>next great indoor adventure.</p></div>
+      <div class="tg-trailer-frame" data-tg-reveal><div class="video-embed" data-video-id="XKQj4hICF3s" data-video-title="Touch Grass! VR Simulator — Official Trailer" data-poster="/textures/tgs2_1024.jpg"><noscript><a class="tg-video-fallback" href="https://www.youtube.com/watch?v=XKQj4hICF3s"><img src="/textures/tgs2_1024.jpg" alt="Watch the official Touch Grass VR trailer on YouTube" width="1024" height="576" loading="lazy"><span>Watch the trailer on YouTube ↗</span></a></noscript></div></div>
+      <div class="tg-trailer-caption"><span>TOUCH GRASS! VR SIMULATOR</span><a href="https://www.youtube.com/watch?v=XKQj4hICF3s">Open on YouTube <span aria-hidden="true">↗</span></a></div>
+    </section>
+    <section class="tg-get" id="get-game" aria-labelledby="get-title">
+      <img class="tg-get-background" src="/textures/tgs2_1024.jpg" width="1024" height="576" alt="" loading="lazy" decoding="async">
+      <div class="tg-get-copy" data-tg-reveal><p class="tg-eyebrow">Your patch of peace is waiting</p><h2 id="get-title">Go on.<br><em>Touch grass.</em></h2><p>The outdoors has never been this indoors.</p><div class="tg-actions"><a class="tg-button tg-button--lime" href="https://store.steampowered.com/app/3105020/Touch_Grass_VR_Simulator/">Get on Steam <span aria-hidden="true">↗</span></a><a class="tg-button tg-button--outline" href="https://www.meta.com/experiences/touch-grass-vr-simulator/8100957183318215/">Get on Meta Quest <span aria-hidden="true">↗</span></a></div><span class="tg-platform-note">VR HEADSET REQUIRED · AVAILABLE NOW</span></div>
+    </section>
+  </main>
+  <footer class="tg-footer"><div class="tg-footer-top"><a class="tg-brand" href="/index.html"><span aria-hidden="true">✳</span><span>take care<small>STUDIOS</small></span></a><p>A little strange. Made with care.</p><a class="tg-text-link" href="#top">Back to the meadow <span aria-hidden="true">↑</span></a></div><div class="tg-footer-bottom"><p>© 2026 Take Care Studios LLC</p><nav aria-label="Footer"><a href="/index.html">Studio</a><a href="/tgsvrprivacypolicy.html">Privacy Policy</a><a href="/tgsvrtermsofservice.html">Terms of Service</a></nav></div></footer>
 </body>
 </html>

@@ -33,6 +33,10 @@ export function bootWebGL(page: string, quality: QualityProfile, scrub: boolean 
       document.body.classList.remove('home-context-lost');
     });
   }
+  if (page === 'touchgrass') {
+    renderer.canvas.addEventListener('webglcontextlost', () => document.body.classList.add('tg-context-lost'));
+    renderer.canvas.addEventListener('webglcontextrestored', () => document.body.classList.remove('tg-context-lost'));
+  }
   scene.init();
   scene.buildScrollTimeline();
 
@@ -57,10 +61,14 @@ export function bootWebGL(page: string, quality: QualityProfile, scrub: boolean 
   const start = gsap.ticker.time;
   gsap.ticker.add((time, deltaMs) => {
     if (document.hidden || (page === 'home' && !document.body.classList.contains('home-motion'))) return;
+    if (page === 'touchgrass' && (!document.body.classList.contains('tg-motion') ||
+      !document.body.classList.contains('tg-scene-visible') ||
+      document.body.classList.contains('tg-context-lost'))) return;
     const dt = Math.min(deltaMs / 1000, 1 / 20); // clamp tab-switch spikes
     rig.update(pointer, dt);
     scene.update(dt, time - start, pointer);
     renderer.render(scene.scene, rig.camera);
     renderer.reveal();
+    if (page === 'touchgrass') document.body.classList.add('tg-webgl-ready');
   });
 }
