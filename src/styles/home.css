@@ -77,6 +77,8 @@
 .home-button--jade { color:#0b251c; background:#9ce8ca; }
 .home-button--jade:hover { background:#c4f6e1; transform:translateY(-3px); box-shadow:0 8px 35px #70e0ae20; }
 .home-platforms { display:block; margin-top:13px; font-size:8px; letter-spacing:.17em; color:#869e9b; }
+.home-platforms a { display:inline-block; padding-block:8px; color:var(--home-jade); text-decoration:underline; text-underline-offset:3px; }
+.home-platforms a:hover { color:#c4f6e1; }
 .home-chapter--studio .home-stage { align-items:flex-start; padding-top:130px; }
 .home-chapter--studio .home-stage::before { background:linear-gradient(#080b1433,transparent 65%); }
 .home-finale__copy { position:relative; z-index:2; text-align:center; margin-inline:auto; }
